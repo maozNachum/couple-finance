@@ -1,0 +1,14 @@
+:root {
+  font-family: Arial, "Noto Sans Hebrew", sans-serif;
+  color: #233e36;
+  background: #f7f7f2;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  --forest: #183e36;
+  --muted: #66736b;
+  --line: #dce2d7;
+  --paper: #f7f7f2;
+  --surface: #ffffff;
+  --focus: #8b4b16;
+}

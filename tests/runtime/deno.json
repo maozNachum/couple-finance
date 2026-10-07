@@ -1,0 +1,5 @@
+{
+  "compilerOptions": { "strict": true, "lib": ["es2022", "deno.ns"], "noUncheckedIndexedAccess": true, "exactOptionalPropertyTypes": true },
+  "nodeModulesDir": "none",
+  "lock": false
+}

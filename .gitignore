@@ -1,0 +1,15 @@
+node_modules/
+dist/
+coverage/
+playwright-report/
+test-results/
+.artifacts/
+.npm-cache/
+.deno-cache/
+.env
+.env.*
+!.env.example
+*.local
+*.tsbuildinfo
+sources/
+/AGENTS.md

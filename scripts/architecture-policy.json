@@ -1,0 +1,8 @@
+{
+  "financeModules": {
+    "@finance/contracts/application-context": "supabase/functions/_shared/core/contracts/application-context.ts"
+  },
+  "corePackages": [],
+  "browserPackages": ["react", "react-dom", "react-router-dom"],
+  "browserTestPackages": ["vitest", "@testing-library/react", "@testing-library/jest-dom", "@testing-library/user-event"]
+}
