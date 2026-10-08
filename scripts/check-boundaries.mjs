@@ -59,6 +59,9 @@ export function checkFiles(files, activePolicy = policy) {
       } else {
         const allowed = core ? activePolicy.corePackages : [...activePolicy.browserPackages, ...(testPattern.test(file) ? activePolicy.browserTestPackages : [])];
         if (!allowed.includes(packageName(specifier))) report(file, `Unapproved ${core ? 'core' : 'browser'} package or absolute import: ${specifier}`);
+        if (core && allowed.includes(packageName(specifier)) && !allowed.includes(specifier)) report(file, `Core package subpaths require explicit review: ${specifier}`);
+        const owners = activePolicy.corePackageOwners?.[packageName(specifier)];
+        if (core && owners && !owners.includes(file)) report(file, `Package must stay in its canonical wrapper: ${specifier}`);
         return;
       }
       if (browser && target.startsWith('supabase/') && !specifier.startsWith('@finance/')) {
@@ -126,6 +129,14 @@ export function assertArchitecture(root = repositoryRoot) {
   const config = JSON.parse(readFileSync(path.join(root, 'tsconfig.json'), 'utf8'));
   const expectedPaths = { '@/*': ['./src/*'], ...Object.fromEntries(Object.entries(policy.financeModules).map(([alias, target]) => [alias, [`./${target}`]])) };
   if (JSON.stringify(config.compilerOptions.paths) !== JSON.stringify(expectedPaths)) errors.push('tsconfig.json aliases must match the exact reviewed architecture policy');
+  const deno = JSON.parse(readFileSync(path.join(root, 'tests/runtime/deno.json'), 'utf8'));
+  const manifest = JSON.parse(readFileSync(path.join(root, 'package.json'), 'utf8'));
+  const expectedImports = {
+    ...Object.fromEntries(policy.corePackages.map((name) => [name, `npm:${name}@${manifest.dependencies[name]}`])),
+    ...Object.fromEntries(Object.entries(policy.financeModules).map(([alias, target]) => [alias, `../../${target}`])),
+  };
+  if (JSON.stringify(deno.imports) !== JSON.stringify(expectedImports)) errors.push('Deno imports must match exact reviewed modules and npm dependency versions');
+  if (deno.nodeModulesDir !== 'manual' || deno.lock !== false) errors.push('Deno tests must use the npm-installed, npm-lockfile-controlled dependency tree');
   if (errors.length) throw new Error(`Architecture boundary violations:\n${errors.join('\n')}`);
 }
 

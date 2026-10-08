@@ -1,8 +1,40 @@
 {
   "financeModules": {
-    "@finance/contracts/application-context": "supabase/functions/_shared/core/contracts/application-context.ts"
+    "@finance/contracts/application-context": "supabase/functions/_shared/core/contracts/application-context.ts",
+    "@finance/contracts/currency": "supabase/functions/_shared/core/contracts/currency.ts",
+    "@finance/contracts/money": "supabase/functions/_shared/core/contracts/money.ts",
+    "@finance/contracts/financial-date": "supabase/functions/_shared/core/contracts/financial-date.ts",
+    "@finance/contracts/identity": "supabase/functions/_shared/core/contracts/identity.ts",
+    "@finance/contracts/ownership": "supabase/functions/_shared/core/contracts/ownership.ts",
+    "@finance/contracts/account": "supabase/functions/_shared/core/contracts/account.ts",
+    "@finance/contracts/ingestion": "supabase/functions/_shared/core/contracts/ingestion.ts",
+    "@finance/contracts/fx": "supabase/functions/_shared/core/contracts/fx.ts",
+    "@finance/contracts/allocation": "supabase/functions/_shared/core/contracts/allocation.ts",
+    "@finance/contracts/transaction": "supabase/functions/_shared/core/contracts/transaction.ts",
+    "@finance/contracts/safe-error": "supabase/functions/_shared/core/contracts/safe-error.ts",
+    "@finance/domain/money/decimal": "supabase/functions/_shared/core/domain/money/decimal.ts",
+    "@finance/domain/money/money": "supabase/functions/_shared/core/domain/money/money.ts",
+    "@finance/domain/money/fx": "supabase/functions/_shared/core/domain/money/fx.ts",
+    "@finance/domain/dates/financial-date": "supabase/functions/_shared/core/domain/dates/financial-date.ts"
   },
-  "corePackages": [],
-  "browserPackages": ["react", "react-dom", "react-router-dom"],
-  "browserTestPackages": ["vitest", "@testing-library/react", "@testing-library/jest-dom", "@testing-library/user-event"]
+  "corePackages": [
+    "zod",
+    "decimal.js"
+  ],
+  "browserPackages": [
+    "react",
+    "react-dom",
+    "react-router-dom"
+  ],
+  "browserTestPackages": [
+    "vitest",
+    "@testing-library/react",
+    "@testing-library/jest-dom",
+    "@testing-library/user-event"
+  ],
+  "corePackageOwners": {
+    "decimal.js": [
+      "supabase/functions/_shared/core/domain/money/decimal.ts"
+    ]
+  }
 }

@@ -1,9 +1,11 @@
-/** Public presentation context; no financial behavior or runtime dependencies. */
-export interface ApplicationContext {
-  readonly locale: 'he-IL';
-  readonly direction: 'rtl';
-  readonly timeZone: 'Asia/Jerusalem';
-}
+import { z } from 'zod';
+import { householdTimeZone } from './financial-date.ts';
+
+/** Same canonical validation strategy as the financial contracts. */
+export const applicationContextSchema = z.strictObject({
+  locale: z.literal('he-IL'), direction: z.literal('rtl'), timeZone: z.literal(householdTimeZone),
+}).readonly();
+export type ApplicationContext = z.infer<typeof applicationContextSchema>;
 
 export const applicationContext: ApplicationContext = Object.freeze({
   locale: 'he-IL',
@@ -12,17 +14,7 @@ export const applicationContext: ApplicationContext = Object.freeze({
 });
 
 export function parseApplicationContext(value: unknown): ApplicationContext {
-  if (typeof value !== 'object' || value === null || Array.isArray(value)) {
-    throw new TypeError('Invalid application context');
-  }
-  const fields = value as Record<string, unknown>;
-  if (
-    Object.keys(fields).length !== 3 ||
-    fields.locale !== 'he-IL' ||
-    fields.direction !== 'rtl' ||
-    fields.timeZone !== 'Asia/Jerusalem'
-  ) {
-    throw new TypeError('Invalid application context');
-  }
+  // Preserve Task 1's public TypeError behavior; schema diagnostics stay private.
+  if (!applicationContextSchema.safeParse(value).success) throw new TypeError('Invalid application context');
   return applicationContext;
 }

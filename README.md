@@ -1,6 +1,6 @@
 # Couple Finance
 
-Private household finance application for Maoz and Shachar. **Task 1 only:** a Hebrew RTL application shell, a portable presentation contract, enforced code boundaries, and verification tooling. No financial functionality, authentication, database, live providers, or AI is implemented.
+Private household finance application for Maoz and Shachar. **Tasks 1–2:** a Hebrew RTL application shell, pure money/date primitives, portable validated contracts, enforced code boundaries, and verification tooling. No financial UI, reporting calculations, authentication, database, live providers, or AI is implemented.
 
 ## Run locally
 
@@ -30,12 +30,12 @@ Individual commands:
 | `npm run lint` | ESLint, TypeScript, React hooks and refresh rules |
 | `npm run check:architecture` | AST-based dependency and alias validation |
 | `npm test` | React behavior, shared contract, adversarial architecture tests |
-| `npm run check:deno` | Deno typecheck and permission-free shared-contract tests |
-| `npm run build` | Guarded production browser build |
+| `npm run check:deno` | Offline Deno typecheck and permission-free shared-contract tests using installed npm packages |
+| `npm run build` | Guarded production browser build plus isolated test-only core browser bundle |
 | `npm run test:e2e` | Built-site desktop/mobile, keyboard, accessibility, route and overflow tests |
 | `npm run preview` | Preview the most recent production build |
 
-`test:e2e` expects a current `dist/`; `verify` builds it first. Browser tests own port 4173 and do not reuse an unknown running server. Screenshots/traces are local ignored artifacts under `test-results/`.
+`test:e2e` expects a current `dist/` and `.artifacts/core-probe/`; `verify` builds both first. The probe never enters the app distribution. Browser tests own port 4173 and do not reuse an unknown running server. Screenshots/traces are local ignored artifacts under `test-results/`. One financial test corpus runs in Vitest, Deno, and Chromium with UTC, Jerusalem, Los Angeles, and Kiritimati timezones.
 
 ## Where code belongs
 
@@ -43,4 +43,4 @@ Read [architecture](docs/architecture.md), [financial model](docs/data-model.md)
 
 The root is the application root; there is no nested `couple-finance/` directory. The inherited root `AGENTS.md` and `sources/` are read-only mirror material and must remain untouched. Synced references are excluded from Git, tooling, and browser serving.
 
-This is a local foundation, not a deployed or authenticated financial application. Task 2 adds money/date contracts and pure primitives only; Task 3 introduces database/auth isolation.
+This is a local foundation, not a deployed or authenticated financial application. See [Task 2 contracts](docs/portable-contracts.md), [delivery report](docs/task-2-report.md), and [recommended Task 3 prompt](docs/task-3-prompt.md). Task 3 introduces database/auth isolation.

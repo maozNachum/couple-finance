@@ -1,6 +1,6 @@
-# Financial model — decisions for later tasks
+# Financial model
 
-No tables, migrations, financial DTOs, or formulas are implemented in Task 1.
+Task 2 implements [canonical contracts and pure primitives](portable-contracts.md). Tables, migrations, persistence and financial reporting calculations remain future work.
 
 ## Invariants
 
@@ -26,6 +26,10 @@ No tables, migrations, financial DTOs, or formulas are implemented in Task 1.
 - FX direction: one base-currency unit equals rate quote-currency units. Store origin/effective/recorded dates; no current-rate rewrites of past spending.
 - Financial transaction/value/settlement dates are date-only. Audit/sync timestamps are UTC instants. Household calendar is Asia/Jerusalem; never interpret a financial date as midnight UTC.
 - Month boundaries are half-open intervals. Month-end recurrence clamps explicitly; holiday shifts are not guessed.
+
+Implemented precision rules: decimal operands have at most 18 integer and 12 fractional digits; Money is restricted to 16 integer and 8 fractional digits. Addition/subtraction/multiplication are exact or fail. Division must be exact within those bounds or receive an explicit HALF_UP rounding policy. Display uses supported currency minor units without mutating posted values. Bounds are validated before normalization, including excess trailing zeros. Overflow never becomes truncation or a JSON number.
+
+Transactions carry one signed account movement and one or more allocations whose signed Money sums exactly to the parent in the same currency. An unknown categorization uses a full-amount UNCLASSIFIED allocation. Categories do not determine effects. The schema enforces these local invariants now; later database tasks must enforce them atomically with household-scoped references and membership checks.
 
 ## Future table families
 

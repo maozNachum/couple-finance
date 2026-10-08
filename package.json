@@ -3,7 +3,9 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "engines": { "node": ">=22.14.0 <23" },
+  "engines": {
+    "node": ">=22.14.0 <23"
+  },
   "scripts": {
     "dev": "vite --host 127.0.0.1",
     "preview": "vite preview --host 127.0.0.1",
@@ -12,15 +14,17 @@
     "check:architecture": "node scripts/check-boundaries.mjs",
     "test": "vitest run",
     "test:watch": "vitest",
-    "check:deno": "deno check --config tests/runtime/deno.json supabase/functions/_shared/core/contracts/application-context.ts && deno test --config tests/runtime/deno.json tests/runtime/application-context.deno.ts",
-    "build": "npm run check:architecture && vite build",
+    "check:deno": "deno check --cached-only --config tests/runtime/deno.json tests/runtime/application-context.deno.ts tests/runtime/core.deno.ts tests/runtime/permissions.deno.ts && deno test --cached-only --no-prompt --config tests/runtime/deno.json tests/runtime/application-context.deno.ts tests/runtime/core.deno.ts tests/runtime/permissions.deno.ts",
+    "build": "npm run check:architecture && vite build && node scripts/build-core-probe.mjs",
     "test:e2e": "playwright test",
     "verify": "npm run typecheck && npm run lint && npm run check:architecture && npm test && npm run check:deno && npm run build && npm run test:e2e"
   },
   "dependencies": {
+    "decimal.js": "10.6.0",
     "react": "19.3.0",
     "react-dom": "19.3.0",
-    "react-router-dom": "7.18.4"
+    "react-router-dom": "7.18.4",
+    "zod": "4.6.5"
   },
   "devDependencies": {
     "@axe-core/playwright": "4.13.0",

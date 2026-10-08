@@ -1,6 +1,6 @@
 # Source and AI boundaries — future work
 
-There are no provider adapters or external connections in Task 1.
+There are no provider adapters or external connections in Tasks 1–2. Task 2 defines portable source/provenance/ingestion identity contracts only; see [portable contracts](portable-contracts.md).
 
 Sources support MANUAL, FILE_IMPORT or LIVE_SYNC. Manual entries use canonical validated commands; they do not pretend to be network providers. Capability-based file/live adapters live exclusively under `supabase/functions/_shared/providers/<provider>/`.
 

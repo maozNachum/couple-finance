@@ -1,6 +1,6 @@
 # Security boundaries
 
-Task 1 is a local, unauthenticated shell containing no private financial data. No Supabase client, auth, database, secret store, provider, AI or deployment is configured. Do not expose financial data until the Task 3 security foundation is verified.
+Tasks 1–2 are a local, unauthenticated shell plus pure contracts containing no private financial data. No Supabase client, auth, database, secret store, provider, AI or deployment is configured. Do not expose financial data until the Task 3 security foundation is verified.
 
 ## Future authorization requirements
 
@@ -26,3 +26,9 @@ Task 1 is a local, unauthenticated shell containing no private financial data. N
 The read-only root AGENTS.md and sources/ remain untouched. sources/ is ignored by Git/lint and denied by the local Vite server. Environment files are ignored and denied. Code boundaries run in local build/dev and CI. Browser tests check that the shell makes no external requests.
 
 Vite is a local development tool, not an authorization boundary or production server. Production hosting/security headers will be addressed in a separate authorized task. This task does not deploy.
+
+## Portable validation and safe errors
+
+Task 2 uses strict canonical Zod schemas; no provider payloads or unrestricted metadata bags are accepted. UUID validation and ownership shape checks do not establish authorization, household membership, referential integrity or account-currency consistency with a stored account. Those checks need trusted application/database context in later tasks.
+
+Only the `SafeError` contract belongs on error responses: fixed code/kind/message/retryability variants, optional UUID request/correlation IDs, and enumerated validation-field errors. Unexpected keys and arbitrary messages are rejected. Never serialize caught exceptions, Zod issues, stack traces or provider responses; validation diagnostics are internal. `internalSafeError` accepts no exception or arbitrary message. This is an output boundary, not a mechanism to detect secrets hidden in legitimate business descriptions.

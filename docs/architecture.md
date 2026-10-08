@@ -1,6 +1,6 @@
 # Architecture and placement
 
-Status: approved design; Task 1 foundation implemented. Use a modular monolith, one React/Vite client and one future Supabase backend. Financial functionality is not implemented yet.
+Status: approved design; Tasks 1–2 foundations implemented. Use a modular monolith, one React/Vite client and one future Supabase backend. Pure primitives and contracts exist; financial application features remain future work.
 
 ## Dependency ownership
 
@@ -22,9 +22,9 @@ Future folders are created only with real work. Do not create empty feature tree
 
 ## Automated boundary
 
-`scripts/architecture-policy.json` contains exact approved `@finance` modules. Initially only `@finance/contracts/application-context` is approved. `@/*` maps to `src/*`. No wildcard `@finance` mapping is permitted.
+`scripts/architecture-policy.json` contains exact approved `@finance` modules. Task 2 adds reviewed contracts and money/date primitives alongside application-context. Each path has an acceptance and direct/indirect rejection test. `@/*` maps to `src/*`. No wildcard `@finance` mapping is permitted.
 
-The frontend may access only explicitly approved files in core/contracts and core/domain, and only through the approved alias. Relative paths into Supabase, alternate aliases, server type imports, re-exports, raw imports, runtime loaders and nonliteral dynamic imports are rejected. Core local dependencies are checked recursively by scanning every core source, including unused helpers. Core third-party packages require an explicit review and allowlist update; none are currently approved.
+The frontend may access only explicitly approved files in core/contracts and core/domain, and only through the approved alias. Relative paths into Supabase, alternate aliases, server type imports, re-exports, raw imports, runtime loaders and nonliteral dynamic imports are rejected. Core local dependencies are checked recursively by scanning every core source, including unused helpers. Reviewed core packages are Zod 4.6.5 and decimal.js 10.6.0. Package subpaths require separate review, and only `domain/money/decimal.ts` may import decimal.js. Its private clone/configuration cannot escape. Browser source cannot import either package directly under the current policy.
 
 The TypeScript AST checker covers imports, exports, import types, dynamic imports, prohibited runtime capabilities and CSS imports. TypeScript paths must match the policy. Vite uses the same aliases, runs the guard at startup/build/hot updates, and checks the actual bundle graph for server modules. Core is independently typechecked with ES-only libraries and no ambient Node/DOM types.
 
@@ -34,7 +34,15 @@ Architecture tests include malicious direct/indirect imports. This guards accide
 
 React Router owns the two actual routes and 404 state. Shared layout owns skip navigation, landmarks, route focus, responsive navigation, and footer. CSS uses logical properties for Hebrew RTL. No external fonts, analytics, network requests, or UI state library. TanStack Query/auth context/forms are deferred until real server data, authentication, or forms exist.
 
-ApplicationContext is a real public presentation contract: locale, direction, and timezone. The browser uses it to set document language/direction; the identical parser runs under Vitest and Deno. It has no financial behavior. Task 2 may introduce Zod and Decimal through reviewed, pinned dependencies. Future deployed Edge Functions receive their own Deno dependency configuration; the test-only Deno config is not a deployment config.
+ApplicationContext is a real public presentation contract: locale, direction, and timezone. The browser uses it to set document language/direction; its Zod schema follows the same validation strategy as other contracts. Its Task 1 parser retains its immutable return and TypeError behavior. Future deployed Edge Functions receive their own Deno dependency configuration; the test-only Deno config is not a deployment config.
+
+## Task 2 decisions
+
+No incompatibility with the approved architecture was found; no redesign was needed. Schemas are strict, portable Zod definitions with inferred output types. Branded decimal/date/ID types prevent accidental mixing, while every exported arithmetic/date entry point revalidates runtime inputs. Objects/arrays at contract boundaries are readonly; no library arithmetic instance enters a DTO. Generic metadata bags are deliberately omitted until a concrete semantic field is needed.
+
+One shared corpus tests the exact aliases through Vitest/jsdom, Deno (cached-only module loading and no runtime permissions), and an isolated Vite browser probe. The probe runs on a blank Chromium page without network requests in four timezones and is excluded from `dist/`. Original shell E2E checks remain intact. Exact test-only Deno imports map to the same installed npm versions; npm's lockfile and `npm ci` are the dependency authority, without a second independently resolved dependency graph.
+
+See [portable contracts](portable-contracts.md) for numeric bounds, error behavior, signs, ownership and historical FX semantics. No application service, persistence, provider, reconciliation, reporting feature or runtime clock was added.
 
 ## Names and tests
 

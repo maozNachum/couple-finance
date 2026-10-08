@@ -1,12 +1,13 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest';
 import { checkFiles, assertArchitecture } from '../../scripts/check-boundaries.mjs';
+import { policy } from '../../scripts/aliases.mjs';
 
 const contract = 'supabase/functions/_shared/core/contracts/application-context.ts';
 const core = 'supabase/functions/_shared/core/';
 const fixtures = (browser, extra = []) => new Map([
   ['src/app/main.ts', browser],
-  [contract, 'export const value = 1;'],
+  ...Object.values(policy.financeModules).map((file) => [file, 'export const value = 1;']),
   ...extra,
 ]);
 
@@ -14,6 +15,29 @@ describe('architecture boundaries', () => {
   it('validates the repository and its exact TypeScript aliases', () => expect(() => assertArchitecture()).not.toThrow());
   it('allows approved runtime-independent imports', () => {
     expect(checkFiles(fixtures("import { value } from '@finance/contracts/application-context';"))).toEqual([]);
+  });
+  it.each(Object.entries(policy.financeModules))('checks the complete boundary for %s', (alias, target) => {
+    expect(checkFiles(fixtures(`import '${alias}';`))).toEqual([]);
+    for (const forbidden of [
+      "import type { X } from '../../infrastructure/database.ts';",
+      "export * from '../../providers/bank.ts';",
+      "import { service } from '../../application/service.ts';",
+      "const now = Date.now();",
+      "const token = process.env.TOKEN;",
+    ]) {
+      expect(checkFiles(fixtures(`import '${alias}';`, [[target, forbidden]])).length).toBeGreaterThan(0);
+    }
+    const helper = `${core}domain/boundary-helper.ts`;
+    const relative = target.includes('/domain/money/') ? '../boundary-helper.ts'
+      : target.includes('/domain/dates/') ? '../boundary-helper.ts' : '../domain/boundary-helper.ts';
+    expect(checkFiles(fixtures(`import '${alias}';`, [
+      [target, `export * from '${relative}';`],
+      [helper, "import secrets from '../../infrastructure/secrets.ts';"],
+    ])).join('\n')).toContain('escapes its runtime boundary');
+  });
+  it('confines the decimal dependency to its canonical wrapper', () => {
+    expect(checkFiles(fixtures('', [[contract, "import { Decimal } from 'decimal.js';"]])).join('\n')).toContain('canonical wrapper');
+    expect(checkFiles(fixtures('', [[contract, "import 'zod/experimental';"]])).join('\n')).toContain('subpaths require explicit review');
   });
   it.each([
     "import x from '../../supabase/functions/_shared/infrastructure/secrets.ts';",
