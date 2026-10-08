@@ -1,11 +1,12 @@
 # Financial model
 
-Task 2 implements [canonical contracts and pure primitives](portable-contracts.md). Tables, migrations, persistence and financial reporting calculations remain future work.
+Task 2 implements [canonical contracts and pure primitives](portable-contracts.md). Task 3 adds only identity tables: profiles, households and household_members. Financial tables, persistence and reporting calculations remain future work.
 
 ## Invariants
 
 - Every financial record belongs to a household, with RLS and composite `(household_id, id)` references when the database is built.
 - Ownership is `HOUSEHOLD` or `MEMBER` plus a relational member ID, never the hardcoded names Maoz/Shachar. Initial household members share visibility; ownership is attribution.
+- `household_members.id` and its household are immutable durable attribution identities. The optional `user_id` is only a login association: profile deletion sets it to NULL and atomically revokes membership. Each member retains a required display-name snapshot independently of profile changes. Unlinked rows cannot be reassigned or reactivated; a newly invited identity needs a new explicitly provisioned membership. Future history references `(household_id, id)`, never the Auth user/profile. Household deletion is restricted while members exist.
 - Accounts have stable internal identity independent of `MANUAL`, `FILE_IMPORT`, and `LIVE_SYNC` source mappings. Sources are replaceable; accounts may retain multiple historical sources and one authoritative observed-balance source at a time.
 - Supported account types: BANK, CREDIT_CARD, CASH, SAVINGS, INVESTMENT, PENSION, PROVIDENT_FUND, DEPOSIT, LOAN, OTHER_ASSET, OTHER_LIABILITY. Product subtype is separate from institution identity.
 - LEDGER account balances derive from explicit opening/correction entries plus posted movements. OBSERVED accounts use authoritative dated observations, not a sum of incomplete imported transactions. Never combine the two silently. Cash is a normal ledger account.

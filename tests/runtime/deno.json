@@ -28,6 +28,7 @@
     "@finance/domain/money/decimal": "../../supabase/functions/_shared/core/domain/money/decimal.ts",
     "@finance/domain/money/money": "../../supabase/functions/_shared/core/domain/money/money.ts",
     "@finance/domain/money/fx": "../../supabase/functions/_shared/core/domain/money/fx.ts",
-    "@finance/domain/dates/financial-date": "../../supabase/functions/_shared/core/domain/dates/financial-date.ts"
+    "@finance/domain/dates/financial-date": "../../supabase/functions/_shared/core/domain/dates/financial-date.ts",
+    "@finance/contracts/household": "../../supabase/functions/_shared/core/contracts/household.ts"
   }
 }

@@ -1,6 +1,6 @@
 # Architecture and placement
 
-Status: approved design; Tasks 1–2 foundations implemented. Use a modular monolith, one React/Vite client and one future Supabase backend. Pure primitives and contracts exist; financial application features remain future work.
+Status: approved design; Tasks 1–3 foundations implemented. Use a modular monolith, one React/Vite client and one future Supabase backend. Pure primitives and contracts exist; financial application features remain future work.
 
 ## Dependency ownership
 
@@ -32,7 +32,7 @@ Architecture tests include malicious direct/indirect imports. This guards accide
 
 ## Frontend choices
 
-React Router owns the two actual routes and 404 state. Shared layout owns skip navigation, landmarks, route focus, responsive navigation, and footer. CSS uses logical properties for Hebrew RTL. No external fonts, analytics, network requests, or UI state library. TanStack Query/auth context/forms are deferred until real server data, authentication, or forms exist.
+React Router owns the two actual routes and 404 state. Shared layout owns skip navigation, landmarks, route focus, responsive navigation, and footer. CSS uses logical properties for Hebrew RTL. No external fonts, analytics or UI state library. The public shell makes no external requests. Task 3 identity routes use the pinned Supabase SDK through shared browser infrastructure; sessions stay in memory.
 
 ApplicationContext is a real public presentation contract: locale, direction, and timezone. The browser uses it to set document language/direction; its Zod schema follows the same validation strategy as other contracts. Its Task 1 parser retains its immutable return and TypeError behavior. Future deployed Edge Functions receive their own Deno dependency configuration; the test-only Deno config is not a deployment config.
 
@@ -42,7 +42,7 @@ No incompatibility with the approved architecture was found; no redesign was nee
 
 One shared corpus tests the exact aliases through Vitest/jsdom, Deno (cached-only module loading and no runtime permissions), and an isolated Vite browser probe. The probe runs on a blank Chromium page without network requests in four timezones and is excluded from `dist/`. Original shell E2E checks remain intact. Exact test-only Deno imports map to the same installed npm versions; npm's lockfile and `npm ci` are the dependency authority, without a second independently resolved dependency graph.
 
-See [portable contracts](portable-contracts.md) for numeric bounds, error behavior, signs, ownership and historical FX semantics. No application service, persistence, provider, reconciliation, reporting feature or runtime clock was added.
+See [portable contracts](portable-contracts.md) for numeric bounds, error behavior, signs, ownership and historical FX semantics. Task 2 added no application service, persistence, provider, reconciliation, reporting feature or runtime clock. Task 3 adds local identity persistence only; see [decisions](task-3-decisions.md) and [auth boundaries](local-auth.md).
 
 ## Names and tests
 

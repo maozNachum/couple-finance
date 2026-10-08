@@ -12,6 +12,11 @@ const fixtures = (browser, extra = []) => new Map([
 ]);
 
 describe('architecture boundaries', () => {
+  it('confines the browser SDK and environment reads to reviewed infrastructure', () => {
+    expect(checkFiles(fixtures("import { createClient } from '@supabase/supabase-js';")).join('\n')).toContain('infrastructure owner');
+    expect(checkFiles(fixtures('const url = import.meta.env.VITE_SUPABASE_URL;')).join('\n')).toContain('import.meta');
+    expect(checkFiles(fixtures('', [['src/shared/infrastructure/public-config.ts', 'const config = import.meta.env.VITE_SUPABASE_URL;']]))).toEqual([]);
+  });
   it('validates the repository and its exact TypeScript aliases', () => expect(() => assertArchitecture()).not.toThrow());
   it('allows approved runtime-independent imports', () => {
     expect(checkFiles(fixtures("import { value } from '@finance/contracts/application-context';"))).toEqual([]);
