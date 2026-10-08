@@ -8,7 +8,7 @@ export default tseslint.config(
   { ignores: ['node_modules/**', 'dist/**', 'sources/**', '.artifacts/**', '.npm-cache/**', '.deno-cache/**', 'test-results/**', 'playwright-report/**', 'tests/runtime/**'] },
   js.configs.recommended,
   ...tseslint.configs.recommended,
-  { files: ['**/*.{js,mjs}', '*.config.ts', 'tests/e2e/**/*.ts'], languageOptions: { globals: globals.node } },
+  { files: ['**/*.{js,mjs}', '*.config.ts', 'tests/e2e/**/*.ts', 'tests/auth-e2e/**/*.ts'], languageOptions: { globals: globals.node } },
   {
     files: ['src/**/*.{ts,tsx}'],
     languageOptions: { globals: globals.browser },

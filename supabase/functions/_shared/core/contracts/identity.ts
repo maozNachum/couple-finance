@@ -17,3 +17,6 @@ export type HouseholdId = z.infer<typeof householdIdSchema>;
 export type MemberId = z.infer<typeof memberIdSchema>;
 export type SourceId = z.infer<typeof sourceIdSchema>;
 export type TransactionId = z.infer<typeof transactionIdSchema>;
+
+export const userIdSchema = uuidSchema.brand<'UserId'>();
+export type UserId = z.infer<typeof userIdSchema>;

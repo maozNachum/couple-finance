@@ -1,10 +1,20 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
-    "types": ["node"],
+    "types": [
+      "node"
+    ],
     "allowJs": true,
     "checkJs": false
   },
-  "include": ["vite.config.ts", "vitest.config.ts", "playwright.config.ts", "tests/**/*.ts"],
-  "exclude": ["tests/runtime"]
+  "include": [
+    "vite.config.ts",
+    "vitest.config.ts",
+    "playwright.config.ts",
+    "tests/**/*.ts",
+    "playwright.auth.config.ts"
+  ],
+  "exclude": [
+    "tests/runtime"
+  ]
 }

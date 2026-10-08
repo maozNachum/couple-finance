@@ -13,6 +13,7 @@ import { transactionSchema, transactionStatusSchema } from '@finance/contracts/t
 import { sourceIdentitySchema, ingestionIdentitySchema, transactionProvenanceSchema } from '@finance/contracts/ingestion';
 import { accountIdSchema, householdIdSchema } from '@finance/contracts/identity';
 import { safeErrorSchema, internalSafeError } from '@finance/contracts/safe-error';
+import { householdSchema, householdMemberSchema } from '@finance/contracts/household';
 
 // One assertion corpus runs unchanged in Vitest/jsdom, permission-free Deno,
 // and an actual production-bundled browser under four runtime timezones.
@@ -43,6 +44,15 @@ function transaction(amount = '-10', effect = 'EXPENSE') {
 }
 const rawFx = { id, base: 'USD', quote: 'ILS', rate: '3.72', effectiveDate: '2024-02-29', recordedAt: '2024-03-01T12:00:00.123456Z', origin: source };
 const fx = fxRateSchema.parse(rawFx);
+test('household contract reuses canonical UUID and UTC types', () => {
+  equal(householdSchema.parse({ id, name: 'Synthetic household', createdAt: '2024-02-29T12:00:00Z' }).id, id);
+  equal(householdSchema.safeParse({ id, name: 'Synthetic', createdAt: '2024-02-29' }).success, false);
+  equal(householdSchema.safeParse({ id, name: 'Synthetic', createdAt: '2024-02-29T12:00:00Z', secret: 'rejected' }).success, false);
+});
+test('household membership is relational and has explicit revocation', () => {
+  equal(householdMemberSchema.parse({ id, householdId: secondId, userId: thirdId, status: 'REVOKED' }).status, 'REVOKED');
+  equal(householdMemberSchema.safeParse({ id, householdId: 'a-name', userId: thirdId, status: 'ACTIVE' }).success, false);
+});
 
 test('decimal addition is exact: 0.1 + 0.2', () => equal(add(d('0.1'), d('0.2')), '0.3'));
 test('decimal subtraction crosses zero exactly', () => equal(subtract(d('0.1'), d('0.3')), '-0.2'));

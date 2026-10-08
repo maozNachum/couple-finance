@@ -60,6 +60,8 @@ export function checkFiles(files, activePolicy = policy) {
         const allowed = core ? activePolicy.corePackages : [...activePolicy.browserPackages, ...(testPattern.test(file) ? activePolicy.browserTestPackages : [])];
         if (!allowed.includes(packageName(specifier))) report(file, `Unapproved ${core ? 'core' : 'browser'} package or absolute import: ${specifier}`);
         if (core && allowed.includes(packageName(specifier)) && !allowed.includes(specifier)) report(file, `Core package subpaths require explicit review: ${specifier}`);
+        const browserOwners = activePolicy.browserPackageOwners?.[packageName(specifier)];
+        if (browser && browserOwners && !browserOwners.includes(file)) report(file, `Browser package must stay in its infrastructure owner: ${specifier}`);
         const owners = activePolicy.corePackageOwners?.[packageName(specifier)];
         if (core && owners && !owners.includes(file)) report(file, `Package must stay in its canonical wrapper: ${specifier}`);
         return;
@@ -91,7 +93,7 @@ export function checkFiles(files, activePolicy = policy) {
       }
       if (ts.isIdentifier(node) && ['require', 'eval', 'Function', 'Worker', 'SharedWorker'].includes(node.text)) report(file, `Uninspectable runtime loading is prohibited: ${node.text}`);
       if (ts.isMetaProperty(node) && core) report(file, 'Core cannot use runtime import metadata');
-      if (ts.isPropertyAccessExpression(node) && ts.isMetaProperty(node.expression)) report(file, 'Runtime import.meta access belongs only in approved infrastructure, not current source');
+      if (ts.isPropertyAccessExpression(node) && ts.isMetaProperty(node.expression) && !(file === 'src/shared/infrastructure/public-config.ts' && node.name.text === 'env')) report(file, 'Runtime import.meta access belongs only in approved infrastructure, not current source');
       if (ts.isNewExpression(node) && ts.isIdentifier(node.expression) && node.expression.text === 'URL') report(file, 'Asset URL imports need an explicit architecture policy before use');
       if (core && ts.isIdentifier(node) && forbiddenCoreGlobals.has(node.text)) report(file, `Core cannot access runtime capability: ${node.text}`);
       if (core && ts.isPropertyAccessExpression(node) && node.expression.getText(ast) === 'Math' && node.name.text === 'random') report(file, 'Core randomness must be supplied as an input');

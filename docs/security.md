@@ -1,8 +1,8 @@
 # Security boundaries
 
-Tasks 1–2 are a local, unauthenticated shell plus pure contracts containing no private financial data. No Supabase client, auth, database, secret store, provider, AI or deployment is configured. Do not expose financial data until the Task 3 security foundation is verified.
+Task 3 adds a local Supabase Auth/database foundation containing synthetic test data only. See [local auth](local-auth.md) for invitation, session, grant, RLS and audit boundaries. No financial tables, provider, secret store, AI or deployment is configured.
 
-## Future authorization requirements
+## Authorization requirements
 
 - Supabase Auth with invited users; no public enrollment initially. Production authentication should include tested recovery and MFA.
 - Household membership is database-backed. Never authorize from names, frontend state, or editable user metadata.
@@ -23,7 +23,7 @@ Tasks 1–2 are a local, unauthenticated shell plus pure contracts containing no
 
 ## Current repository controls
 
-The read-only root AGENTS.md and sources/ remain untouched. sources/ is ignored by Git/lint and denied by the local Vite server. Environment files are ignored and denied. Code boundaries run in local build/dev and CI. Browser tests check that the shell makes no external requests.
+The read-only root AGENTS.md and sources/ remain untouched. sources/ is ignored by Git/lint and denied by the local Vite server. Environment files are ignored and denied. Code boundaries run in local build/dev and CI. Browser tests check that the public shell makes no external requests; separate authenticated tests contact only local Supabase.
 
 Vite is a local development tool, not an authorization boundary or production server. Production hosting/security headers will be addressed in a separate authorized task. This task does not deploy.
 

@@ -1,6 +1,6 @@
 # Financial model
 
-Task 2 implements [canonical contracts and pure primitives](portable-contracts.md). Tables, migrations, persistence and financial reporting calculations remain future work.
+Task 2 implements [canonical contracts and pure primitives](portable-contracts.md). Task 3 adds only identity tables: profiles, households and household_members. Financial tables, persistence and reporting calculations remain future work.
 
 ## Invariants
 

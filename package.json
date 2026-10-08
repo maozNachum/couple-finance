@@ -17,9 +17,18 @@
     "check:deno": "deno check --cached-only --config tests/runtime/deno.json tests/runtime/application-context.deno.ts tests/runtime/core.deno.ts tests/runtime/permissions.deno.ts && deno test --cached-only --no-prompt --config tests/runtime/deno.json tests/runtime/application-context.deno.ts tests/runtime/core.deno.ts tests/runtime/permissions.deno.ts",
     "build": "npm run check:architecture && vite build && node scripts/build-core-probe.mjs",
     "test:e2e": "playwright test",
-    "verify": "npm run typecheck && npm run lint && npm run check:architecture && npm test && npm run check:deno && npm run build && npm run test:e2e"
+    "verify": "npm run typecheck && npm run lint && npm run check:architecture && npm test && npm run check:deno && npm run build && npm run test:e2e && npm run db:test && npm run db:lint && npm run db:advisors && npm run test:auth && npm run test:auth:e2e",
+    "db:start": "node scripts/local-stack.mjs",
+    "db:test": "supabase test db --local",
+    "db:lint": "supabase db lint --local",
+    "db:advisors": "supabase db advisors --local --type security --fail-on error",
+    "local:admin": "node scripts/local-admin.mjs",
+    "test:auth": "node scripts/test-auth.mjs",
+    "test:auth:e2e": "node scripts/test-auth-browser.mjs",
+    "local:config": "node scripts/local-config.mjs"
   },
   "dependencies": {
+    "@supabase/supabase-js": "2.117.3",
     "decimal.js": "10.6.0",
     "react": "19.3.0",
     "react-dom": "19.3.0",
@@ -43,6 +52,7 @@
     "eslint-plugin-react-refresh": "0.5.7",
     "globals": "17.13.0",
     "jsdom": "26.1.0",
+    "supabase": "2.120.0",
     "typescript": "5.9.3",
     "typescript-eslint": "8.71.1",
     "vite": "8.3.3",

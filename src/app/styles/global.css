@@ -15,7 +15,7 @@ svg { display: block; }
 .brand-mark svg { inline-size: 32px; block-size: 32px; }
 .brand b { display: block; font-size: 17px; letter-spacing: -.5px; }
 .brand small { color: var(--muted); display: block; margin-block-start: 5px; font-size: 12px; }
-.primary-nav { display: flex; gap: 10px; margin-block-start: 22px; }
+.primary-nav { display: flex; flex-wrap: wrap; gap: 10px; margin-block-start: 22px; }
 .primary-nav a { display: flex; align-items: center; gap: 12px; padding: 13px 16px; border-radius: 9px; color: #5c6862; min-block-size: 48px; font-size: 14px; }
 .primary-nav a:hover { background: #f5f7ef; }
 .primary-nav a.active { background: #eaf0e4; color: #234436; font-weight: 700; }
