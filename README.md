@@ -44,3 +44,12 @@ Read [architecture](docs/architecture.md), [financial model](docs/data-model.md)
 The root is the application root; there is no nested `couple-finance/` directory. The inherited root `AGENTS.md` and `sources/` are read-only mirror material and must remain untouched. Synced references are excluded from Git, tooling, and browser serving.
 
 This is a local foundation, not a deployed or authenticated financial application. See [Task 2 contracts](docs/portable-contracts.md), [delivery report](docs/task-2-report.md), and [recommended Task 3 prompt](docs/task-3-prompt.md). Task 3 introduces database/auth isolation.
+
+## Git workflow for future tasks
+
+1. Implement one bounded, explicitly requested task at a time.
+2. Run `npm run verify` and any additional checks required by that task; all checks must pass.
+3. Review `git status`, the complete diff, and new files. Stage only relevant project files and inspect `git diff --cached`.
+4. Never commit secrets, credentials, real financial information, local databases, generated builds, dependencies, or unrelated workspace files. Keep `sources/` and the inherited root `AGENTS.md` excluded and untouched; environment examples must contain placeholders only. Review relevant history before the first push.
+5. Commit with a meaningful message, verify a clean working tree, and push the current branch to the private `couple-finance` repository only after checks pass. Confirm the remote owner and PRIVATE visibility before the first push; inspect existing remote history before connecting to an existing repository.
+6. Check the push result and any GitHub Actions run. Never force-push or rewrite shared history without explicit approval.
