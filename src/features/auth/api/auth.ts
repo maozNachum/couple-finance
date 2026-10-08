@@ -3,8 +3,14 @@ import { browserClient } from '@/shared/infrastructure/supabase-client';
 export async function requestSignIn(email: string): Promise<void> {
   const client = browserClient();
   if (!client) throw new Error('AUTH_UNAVAILABLE');
-  // Do not reveal whether an email belongs to an invited user.
-  await client.auth.signInWithOtp({ email, options: { shouldCreateUser: false, emailRedirectTo: `${window.location.origin}/auth/confirm` } });
+  // Deliberately mask all provider responses, including 5xx: delivery can fail only
+  // for existing accounts. Per-request diagnostics would become an enumeration oracle.
+  // Operators use aggregate service diagnostics (npm run local:auth-diagnostics).
+  try {
+    await client.auth.signInWithOtp({ email, options: { shouldCreateUser: false, emailRedirectTo: `${window.location.origin}/auth/confirm` } });
+  } catch {
+    // Also suppress raw SDK/transport exceptions; the conditional response remains identical.
+  }
 }
 export function consumeConfirmation(fragment: string): { token_hash: string; type: 'invite' | 'email' } | null {
   const params = new URLSearchParams(fragment.replace(/^#/, ''));

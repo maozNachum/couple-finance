@@ -20,4 +20,18 @@ describe('email sign-in boundary', () => {
     verifyOtp.mockRejectedValue(new Error('raw diagnostics'));
     expect(await confirmSignIn(confirmation)).toBe(false);
   });
+  it('keeps success, account errors, infrastructure failures and interruptions indistinguishable', async () => {
+    const warning = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    const error = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    try {
+      for (const response of [{ error: null }, { error: { status: 400, code: 'user_not_found' } }, { error: { status: 500, message: 'SMTP secret and email' } }]) {
+        signInWithOtp.mockResolvedValueOnce(response);
+        await expect(requestSignIn('synthetic@example.test')).resolves.toBeUndefined();
+      }
+      signInWithOtp.mockRejectedValueOnce(new Error('raw transport diagnostics'));
+      await expect(requestSignIn('synthetic@example.test')).resolves.toBeUndefined();
+      expect(warning).not.toHaveBeenCalled();
+      expect(error).not.toHaveBeenCalled();
+    } finally { warning.mockRestore(); error.mockRestore(); }
+  });
 });

@@ -16,7 +16,7 @@ if (command === 'create-household' && first?.trim() && first.length <= 100) {
   if (error || !data.user) throw new Error('Invitation failed. No membership was granted.');
   const userId = uuid(data.user.id);
   try {
-    localSql(`begin; insert into finance.profiles(id,display_name) values ('${userId}',${sqlText(third.trim())}); insert into finance.household_members(household_id,user_id) values ('${household}','${userId}'); commit;`);
+    localSql(`begin; insert into finance.profiles(id,display_name) values ('${userId}',${sqlText(third.trim())}); insert into finance.household_members(household_id,user_id,display_name) values ('${household}','${userId}',${sqlText(third.trim())}); commit;`);
   } catch {
     // Invitation alone grants no household access; compensate a failed provisioning attempt.
     await admin.auth.admin.deleteUser(userId);

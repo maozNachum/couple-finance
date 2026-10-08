@@ -50,8 +50,15 @@ test('household contract reuses canonical UUID and UTC types', () => {
   equal(householdSchema.safeParse({ id, name: 'Synthetic', createdAt: '2024-02-29T12:00:00Z', secret: 'rejected' }).success, false);
 });
 test('household membership is relational and has explicit revocation', () => {
-  equal(householdMemberSchema.parse({ id, householdId: secondId, userId: thirdId, status: 'REVOKED' }).status, 'REVOKED');
-  equal(householdMemberSchema.safeParse({ id, householdId: 'a-name', userId: thirdId, status: 'ACTIVE' }).success, false);
+  equal(householdMemberSchema.parse({ id, householdId: secondId, userId: thirdId, displayName: 'Synthetic', status: 'REVOKED' }).status, 'REVOKED');
+  equal(householdMemberSchema.safeParse({ id, householdId: 'a-name', userId: thirdId, displayName: 'Synthetic', status: 'ACTIVE' }).success, false);
+});
+test('durable members retain attribution without an active login identity', () => {
+  const member = { id, householdId: secondId, userId: null, displayName: 'Former member', status: 'REVOKED' };
+  equal(householdMemberSchema.parse(member).id, id);
+  equal(householdMemberSchema.parse(member).displayName, 'Former member');
+  equal(householdMemberSchema.safeParse({ ...member, status: 'ACTIVE' }).success, false);
+  equal(householdMemberSchema.safeParse({ ...member, displayName: ' ' }).success, false);
 });
 
 test('decimal addition is exact: 0.1 + 0.2', () => equal(add(d('0.1'), d('0.2')), '0.3'));

@@ -62,5 +62,18 @@ try {
   const replay = await fetch(`${status.API_URL}/rest/v1/households?select=*`, { headers: { apikey: status.PUBLISHABLE_KEY ?? status.ANON_KEY, Authorization: `Bearer ${token}`, 'Accept-Profile': 'api' } });
   check(replay.ok && (await replay.json()).length === 0, 'logged-out JWT cannot read households');
   check(Boolean((await a.auth.refreshSession()).error), 'logged-out session cannot refresh');
+  const bSession = (await b.auth.getSession()).data.session;
+  const memberBefore = (await b.from('household_members').select()).data[0];
+  check(!(await admin.auth.admin.deleteUser(fixture.users[1].id)).error, 'real Auth admin deletion succeeds');
+  check(localSql(`select count(*) from finance.household_members where id='${memberBefore.id}' and user_id is null and status='REVOKED' and display_name='Synthetic B';`) === '1', 'Auth deletion retains durable member and display attribution');
+  const deletedReplay = await fetch(`${status.API_URL}/rest/v1/households?select=*`, { headers: { apikey: status.PUBLISHABLE_KEY ?? status.ANON_KEY, Authorization: `Bearer ${bSession.access_token}`, 'Accept-Profile': 'api' } });
+  check(deletedReplay.ok && (await deletedReplay.json()).length === 0, 'deleted Auth identity cannot replay its still-signed JWT');
+  const reinvited = await admin.auth.admin.generateLink({ type: 'invite', email: fixture.users[1].email });
+  check(!reinvited.error && reinvited.data.user.id !== fixture.users[1].id, 'same email invitation creates a distinct login identity');
+  extraUsers.push(reinvited.data.user.id);
+  check(!(await anon.auth.verifyOtp({ token_hash: reinvited.data.properties.hashed_token, type: 'invite' })).error, 'replacement login can authenticate');
+  check((await anon.from('households').select()).data.length === 0, 'same-email replacement does not inherit membership');
+  check(Boolean((await anon.from('household_members').update({ user_id: reinvited.data.user.id, status: 'ACTIVE' }).eq('id',memberBefore.id)).error), 'replacement login cannot claim retained membership through API');
+  await anon.auth.signOut();
   console.log(`Auth/API integration: ${checks} assertions passed against local GoTrue and PostgREST.`);
 } finally { await a.auth.signOut(); await b.auth.signOut(); await fixture.cleanup(); for (const id of extraUsers) await localAdmin().auth.admin.deleteUser(id); }

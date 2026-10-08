@@ -28,6 +28,14 @@ npm run local:admin -- revoke HOUSEHOLD_UUID USER_UUID
 
 The database checks current membership on every read; a previously issued JWT does not retain revoked household access. The UI refreshes on focus and clears old data before refetching. Already displayed information cannot be remotely erased from an offline device. Revocation is authorization removal, not data erasure.
 
+Deleting an Auth user removes their ephemeral profile, but preserves the durable household member: `user_id` becomes NULL and `status` becomes REVOKED in the same transaction. Explicit unlinking has the same effect even with a live Auth session. Member ID, household and display-name snapshot survive. Profile renaming does not rewrite historical attribution. Unlinked members cannot be relinked; inviting the same email again creates a new identity without implicit membership. A new membership requires explicit provisioning. Household deletion is blocked while membership rows remain. Test cleanup explicitly deletes only its generated synthetic fixture IDs; no application purge workflow exists.
+
+## Safe Auth diagnostics
+
+`requestSignIn()` intentionally gives the same conditional acknowledgement for success, unknown accounts, rate limits, provider failures and interrupted requests. Even distinguishing SMTP failures can reveal that an account exists. No per-email result or raw SDK error is logged by the application. Missing local configuration still gives a fixed unavailable message before requesting an address.
+
+Operators can run `npm run local:auth-diagnostics` against the loopback-only local stack. It checks service health independently of any email and summarizes the last ten minutes (at most 1,000 Docker log entries) as fixed `AUTH_SERVICE_ERRORS` and `AUTH_HTTP_5XX` counts. Raw logs are consumed only in memory; addresses, tokens, request IDs and provider messages are never printed or written. Health success/zero counts do not prove delivery success; missing/unparseable entries and the bounded window limit coverage. This is an operator diagnostic, not a public endpoint or production observability system. Hosted monitoring remains separately scoped.
+
 ## Session and security boundaries
 
 - Sessions are in memory only. Reloading or closing the tab requires signing in again. No localStorage/sessionStorage auth cache or offline household cache is used.

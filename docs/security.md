@@ -6,6 +6,7 @@ Task 3 adds a local Supabase Auth/database foundation containing synthetic test 
 
 - Supabase Auth with invited users; no public enrollment initially. Production authentication should include tested recovery and MFA.
 - Household membership is database-backed. Never authorize from names, frontend state, or editable user metadata.
+- Login deletion/unlinking preserves durable membership history and its display snapshot while atomically revoking access. NULL user associations cannot be ACTIVE, reassigned or implicitly reclaimed. Clients have no member INSERT/UPDATE/DELETE grants. Households cannot cascade-delete membership history; future financial FKs must preserve that retention boundary.
 - `api`: curated exposed reads/commands; `finance`: unexposed household tables with RLS; `private`: unexposed server operations/secrets references.
 - RLS plus least-privilege grants, same-household composite FKs, update WITH CHECK policies, and invoker views/RPCs where possible.
 - Security-definer helpers require a fixed search path, explicit privileges, narrow scope and tested caller checks.

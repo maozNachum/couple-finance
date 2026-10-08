@@ -20,15 +20,36 @@ create table finance.households (
 );
 create table finance.household_members (
   id uuid primary key default gen_random_uuid(),
-  household_id uuid not null references finance.households(id) on delete cascade,
-  user_id uuid not null references finance.profiles(id) on delete cascade,
+  household_id uuid not null references finance.households(id) on delete restrict,
+  user_id uuid references finance.profiles(id) on delete set null,
+  -- Durable attribution snapshot; deliberately independent of profile rename/deletion.
+  display_name text not null check (length(btrim(display_name)) between 1 and 100),
   status text not null default 'ACTIVE' check (status in ('ACTIVE', 'REVOKED')),
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
+  constraint member_active_requires_identity check (status <> 'ACTIVE' or user_id is not null),
   unique (household_id, user_id),
   unique (household_id, id)
 );
-create index household_members_user_idx on finance.household_members(user_id, household_id) where status = 'ACTIVE';
+-- Includes revoked members so FK deletion does not scan retained history.
+create index household_members_user_idx on finance.household_members(user_id, household_id);
+create function private.guard_member_identity() returns trigger
+language plpgsql set search_path = '' as $$
+begin
+  if tg_op = 'UPDATE' then
+    if new.id is distinct from old.id or new.household_id is distinct from old.household_id
+       or (new.user_id is distinct from old.user_id and new.user_id is not null) then
+      raise exception using errcode = '23514', message = 'Member identity cannot be reassigned.';
+    end if;
+  end if;
+  -- Runs for explicit unlinking and the FK's SET NULL, in the same transaction.
+  if new.user_id is null then new.status := 'REVOKED'; end if;
+  return new;
+end;
+$$;
+revoke all on function private.guard_member_identity() from public, anon, authenticated;
+create trigger member_identity_guard before insert or update on finance.household_members
+  for each row execute function private.guard_member_identity();
 create table private.identity_audit (
   id bigint generated always as identity primary key,
   occurred_at timestamptz not null default now(),
@@ -104,7 +125,7 @@ create view api.my_profile with (security_invoker = true) as
 create view api.households with (security_invoker = true) as
   select id, name, created_at from finance.households;
 create view api.household_members with (security_invoker = true) as
-  select id, household_id, user_id, status, created_at, updated_at from finance.household_members;
+  select id, household_id, user_id, display_name, status, created_at, updated_at from finance.household_members;
 grant select on api.my_profile, api.households, api.household_members to authenticated;
 
 -- User command is invoker-rights, RLS protected and returns the canonical SafeError shape.

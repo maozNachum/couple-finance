@@ -2,6 +2,8 @@
 
 Date: 2026-10-08. Scope: local invited-user authentication, household membership and database isolation only. No Task 4, financial account UI/tables, provider, ingestion, reporting, deployment or real household data was added.
 
+The subsequent [Task 3 review corrections](task-3-review-fixes.md) supersede the original membership lifecycle and verification counts below. The original delivery results are retained here as the baseline.
+
 ## Baseline and branch
 
 Before implementation, [master CI run 37765143548](https://github.com/maozNachum/couple-finance/actions/runs/37765143548) was verified completed/success at `5603a1c72e64ee8de4814f09a025a3330d290d11`. The clean existing repository was switched to `feature/task-3-household-auth` from that master. Task 1 and Task 2 history is preserved. Root read-only AGENTS.md and sources/ were not modified.
