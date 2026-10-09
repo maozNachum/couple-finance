@@ -1,6 +1,6 @@
 # Architecture and placement
 
-Status: approved design; Tasks 1–3 foundations implemented. Use a modular monolith, one React/Vite client and one future Supabase backend. Pure primitives and contracts exist; financial application features remain future work.
+Status: approved design; Tasks 1–4 implemented locally. Use a modular monolith, one React/Vite client and one Supabase backend. Canonical primitives/contracts, invited-user identity and manual accounts/dated observations exist; transactions and other financial features remain later work.
 
 ## Dependency ownership
 
@@ -45,6 +45,8 @@ One shared corpus tests the exact aliases through Vitest/jsdom, Deno (cached-onl
 See [portable contracts](portable-contracts.md) for numeric bounds, error behavior, signs, ownership and historical FX semantics. Task 2 added no application service, persistence, provider, reconciliation, reporting feature or runtime clock. Task 3 adds local identity persistence only; see [decisions](task-3-decisions.md) and [auth boundaries](local-auth.md).
 
 ## Names and tests
+
+Task 4's bounded accounts feature uses core/contracts/valuation and core/domain/money/valuation through exact reviewed aliases. Pure as-of selection/FX calls remain in core. Atomic persistence and authorization use curated SQL invoker commands; no unused TypeScript application service is introduced. A single invoker snapshot reads coherent account/observation history without the Data API row cap. See [Task 4 decisions](task-4-decisions.md).
 
 - Directories: kebab-case. Components: PascalCase.tsx. Hooks: useName.ts. Other TypeScript: kebab-case.ts.
 - Types: PascalCase. Functions: camelCase. SQL: snake_case. Migrations: CLI-generated timestamps.

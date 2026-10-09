@@ -1,0 +1,10 @@
+# Task 4 decisions
+
+Baseline: master `58fae2360e01f108d305d6709f3dbd99ade6d30b`; post-merge push CI [37813863610](https://github.com/maozNachum/couple-finance/actions/runs/37813863610) passed before implementation. Branch: `feature/task-4-accounts-balances`.
+
+- Accounts retain the canonical Task 2 identity, types, ownership, currencies and policy. Identity, currencies and balance policy cannot be rewritten after creation. Names can be corrected and accounts archived with version checks. Ownership references durable household members; it does not restrict shared visibility.
+- Task 5 owns opening/correction entries and posted movements. LEDGER accounts can be created now, but their balance is explicitly unavailable until that ledger exists. No zero balance is inferred and observations cannot supply a ledger balance. CASH requires LEDGER.
+- OBSERVED accounts have one manual source with an independent source ID. Immutable dated observations carry signed Money, COMPLETE/PARTIAL coverage, a recorded UTC instant, and optional same-date supersession. Corrections append history. Competing corrections conflict rather than overwrite. Dates are supplied explicitly; as-of selection never uses a future observation.
+- Cross-currency observations retain an immutable manual FX record in the same household/account, including its effective date, origin, direction and recording instant. Valuation uses the Task 2 convertMoney implementation with explicit eight-place HALF_UP rounding. Missing FX is visible, never substituted by a current rate. No live FX or reporting totals.
+- Curated invoker RPCs and read views retain the Task 3 live-session/member checks. RLS, composite references, immutable history, raw precision checks, per-account write serialization and atomic audit entries protect persistence. No provider adapters, external connections, ingestion or financial execution.
+- No new runtime dependencies or server framework. SQL commands own atomic persistence/authorization; pure financial calculations remain solely in core/domain. Browser data access stays inside the accounts feature. No unused application service abstraction is introduced.

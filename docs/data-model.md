@@ -1,6 +1,6 @@
 # Financial model
 
-Task 2 implements [canonical contracts and pure primitives](portable-contracts.md). Task 3 adds only identity tables: profiles, households and household_members. Financial tables, persistence and reporting calculations remain future work.
+Task 2 implements [canonical contracts and pure primitives](portable-contracts.md). Task 3 adds profiles, households and durable household_members. Task 4 adds accounts and immutable balance_observations; transactions, ledger entries and reporting totals remain later work. See [Task 4 decisions](task-4-decisions.md).
 
 ## Invariants
 
@@ -33,6 +33,8 @@ Implemented precision rules: decimal operands have at most 18 integer and 12 fra
 Transactions carry one signed account movement and one or more allocations whose signed Money sums exactly to the parent in the same currency. An unknown categorization uses a full-amount UNCLASSIFIED allocation. Categories do not determine effects. The schema enforces these local invariants now; later database tasks must enforce them atomically with household-scoped references and membership checks.
 
 ## Future table families
+
+Task 4 persists manual source identity separately from the canonical Account DTO, inside its record envelope. There is one immutable manual authority per account; future source mapping/cutovers must preserve the stable account ID. Observations retain exact signed Money, date, coverage, server recording timestamp and optional same-date predecessor. FX is an immutable canonical snapshot embedded in each observation rather than a mutable global rate lookup. Current as-of views use corrected knowledge; they are not frozen recorded-time reports. LEDGER accounts have no calculated balance until Task 5 supplies the ledger.
 
 Identity: profiles, households, household_members, currencies. Accounts: institutions, financial_connections, accounts, account_sources, balance_observations, fx_rates. Activity: transactions, transaction_allocations, transaction_sources, transfer_links, categories, merchants, categorization_rules. Planning: budgets, budget_allocations, recurring_series, obligations, obligation_matches. Ingestion: ingestion_runs, ingestion_items, import_profiles. Private operations: connection_credentials, audit_logs, command_receipts. Derived insights: financial_insights.
 

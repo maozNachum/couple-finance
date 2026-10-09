@@ -1,0 +1,11 @@
+.accounts-panel { display: grid; gap: 1.5rem; max-width: 54rem; margin-block: 2rem; }
+.accounts-panel input, .accounts-panel select { display: block; width: 100%; min-width: 0; box-sizing: border-box; padding: .7rem; font: inherit; border: 1px solid #64776c; border-radius: .5rem; background: white; color: #20382c; }
+.accounts-panel button { padding: .7rem 1rem; font: inherit; color: white; background: #254d3d; border: 0; border-radius: .5rem; cursor: pointer; }
+.accounts-panel button:disabled { opacity: .65; cursor: wait; }
+.accounts-panel :focus-visible { outline: 3px solid #9a6127; outline-offset: 3px; }
+.accounts-toolbar { display: flex; gap: 1rem; align-items: end; flex-wrap: wrap; }
+.account-card { border: 1px solid #ccd6ce; border-radius: .8rem; padding: 1.2rem; min-width: 0; overflow-wrap: anywhere; }
+.observation-history { padding-inline-start: 1.2rem; }
+.observation-history li { padding-block: .8rem; border-block-end: 1px solid #ccd6ce; }
+.accounts-panel .identity-form { margin-block: 1rem; }
+.accounts-panel small { display: block; }

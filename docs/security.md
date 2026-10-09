@@ -1,6 +1,6 @@
 # Security boundaries
 
-Task 3 adds a local Supabase Auth/database foundation containing synthetic test data only. See [local auth](local-auth.md) for invitation, session, grant, RLS and audit boundaries. No financial tables, provider, secret store, AI or deployment is configured.
+Task 3 adds a local Supabase Auth/database foundation containing synthetic test data only. See [local auth](local-auth.md) for invitation, session, grant, RLS and audit boundaries. Task 4 extends those same controls to manual accounts and immutable observations; see [its delivery report](task-4-report.md). No provider, secret store, AI or deployment is configured.
 
 ## Authorization requirements
 

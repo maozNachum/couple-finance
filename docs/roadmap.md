@@ -6,8 +6,8 @@ Implement one bounded task per conversation. Each task must leave a working stat
 | --- | --- | --- |
 | 1 — complete | RTL shell, contracts compatibility, tooling and enforced boundaries | src/app, pages, shared; core/contracts; scripts; tests; docs |
 | 2 — complete | Money/date primitives and canonical contracts, no financial features | core/domain/money, core/domain/dates, core/contracts, portable/runtime tests |
-| 3 — current | Auth, local Supabase, households, RLS and grants | auth/household features, migrations, supabase/tests |
-| 4 | Accounts and dated valuations | accounts feature/core/application |
+| 3 — complete | Auth, local Supabase, households, RLS and grants | auth/household features, migrations, supabase/tests |
+| 4 — complete | Accounts and dated valuations | accounts feature/core, atomic SQL commands |
 | 5 | Transactions, allocations, cash ledger and safe commands | transactions and persistence |
 | 6 | Categories and deterministic rules | categorization |
 | 7 | CSV mapping, upload isolation and preview | imports and CSV adapter |
@@ -32,3 +32,5 @@ Task 2 must stay pure and offline: decimal strings, one decimal arithmetic wrapp
 Task 2 decisions and verification are recorded in [its delivery report](task-2-report.md). Start Task 3 only under a separate request using [the recommended prompt](task-3-prompt.md).
 
 Task 3 delivery and verification are in [its report](task-3-report.md). Task 4 requires a separate request after PR review.
+
+Task 4 delivery is in [its report](task-4-report.md). LEDGER account identity exists, but opening/correction entries and balance calculation are reserved for Task 5. Start [Task 5](task-5-prompt.md) only under a separate request after Task 4 review/merge.

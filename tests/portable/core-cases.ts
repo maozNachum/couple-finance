@@ -14,6 +14,8 @@ import { sourceIdentitySchema, ingestionIdentitySchema, transactionProvenanceSch
 import { accountIdSchema, householdIdSchema } from '@finance/contracts/identity';
 import { safeErrorSchema, internalSafeError } from '@finance/contracts/safe-error';
 import { householdSchema, householdMemberSchema } from '@finance/contracts/household';
+import { accountRecordSchema, observationSchema, observationInputSchema, createAccountSchema } from '@finance/contracts/valuation';
+import { valueAccount } from '@finance/domain/money/valuation';
 
 // One assertion corpus runs unchanged in Vitest/jsdom, permission-free Deno,
 // and an actual production-bundled browser under four runtime timezones.
@@ -43,6 +45,59 @@ function transaction(amount = '-10', effect = 'EXPENSE') {
   return { id, householdId: secondId, accountId: thirdId, transactionDate: '2024-02-29', money: { amount, currency: 'ILS' }, description: 'Synthetic movement', status: 'POSTED', provenance: [{ source }], allocations: [allocation(amount, effect)] };
 }
 const rawFx = { id, base: 'USD', quote: 'ILS', rate: '3.72', effectiveDate: '2024-02-29', recordedAt: '2024-03-01T12:00:00.123456Z', origin: source };
+
+const observedRecord = accountRecordSchema.parse({ account: { ...account, balancePolicy: 'OBSERVED' }, version: 1, manualSourceId: thirdId });
+const observation = observationSchema.parse({ id, householdId: secondId, accountId: id, sourceId: thirdId, date, money: money('-10.125'), coverage: 'COMPLETE', supersedesId: null, note: '', fx: null, recordedAt: '2024-03-01T00:00:00Z' });
+test('valuation: ledger is unavailable even when observations are supplied', () => {
+  equal(valueAccount(accountRecordSchema.parse({ ...observedRecord, account }), [observation], date).state, 'LEDGER_UNAVAILABLE');
+});
+test('valuation: missing history is not zero and future observations are excluded', () => {
+  equal(valueAccount(observedRecord, [], date).state, 'MISSING');
+  equal(valueAccount(observedRecord, [observation], financialDateSchema.parse('2024-02-28')).state, 'MISSING');
+});
+test('valuation: signed exact money and original measurement date survive as-of selection', () => {
+  const result = valueAccount(observedRecord, [observation], financialDateSchema.parse('2024-03-10'));
+  if (result.state !== 'VALUED') throw new Error('Expected valued');
+  equal(result.money, money('-10.125')); equal(result.observation.date, date);
+});
+test('valuation: correction replaces rather than adds and partial coverage survives', () => {
+  const corrected = observationSchema.parse({ ...observation, id: secondId, supersedesId: id, money: money('-9.5'), coverage: 'PARTIAL', note: 'Synthetic correction' });
+  const result = valueAccount(observedRecord, [corrected, observation], date);
+  if (result.state !== 'VALUED') throw new Error('Expected valued');
+  equal(result.money, money('-9.5')); equal(result.observation.coverage, 'PARTIAL');
+});
+test('valuation: unrelated household/account histories cannot affect selection', () => {
+  equal(valueAccount(observedRecord, [observationSchema.parse({ ...observation, householdId: thirdId })], date).state, 'MISSING');
+  equal(valueAccount(observedRecord, [observationSchema.parse({ ...observation, accountId: thirdId })], date).state, 'MISSING');
+});
+test('valuation: source and currency mismatches fail closed', () => {
+  rejects(() => valueAccount(observedRecord, [observationSchema.parse({ ...observation, sourceId: id })], date));
+  rejects(() => valueAccount(observedRecord, [observationSchema.parse({ ...observation, money: money('1', 'USD') })], date));
+});
+test('valuation: ambiguous same-day roots fail closed', () => rejects(() => valueAccount(observedRecord, [observation, observationSchema.parse({ ...observation, id: secondId })], date)));
+test('valuation: missing historical FX stays visible', () => {
+  const record = accountRecordSchema.parse({ ...observedRecord, account: { ...observedRecord.account, valuationCurrency: 'USD' } });
+  equal(valueAccount(record, [observation], date).state, 'MISSING_FX');
+});
+test('valuation: conversion uses canonical historical FX and preserves rate identity', () => {
+  const record = accountRecordSchema.parse({ ...observedRecord, account: { ...observedRecord.account, currency: 'USD' } });
+  const row = observationSchema.parse({ ...observation, money: money('-100', 'USD'), fx: { ...rawFx, origin: { sourceId: thirdId, kind: 'MANUAL' } } });
+  const result = valueAccount(record, [row], financialDateSchema.parse('2024-03-10'));
+  if (result.state !== 'VALUED') throw new Error('Expected valued');
+  equal(result.money, money('-372')); equal(result.observation.fx?.id, id);
+  rejects(() => valueAccount(record, [observationSchema.parse({ ...row, fx: { ...row.fx, effectiveDate: '2024-02-28' } })], date));
+  rejects(() => valueAccount(record, [observationSchema.parse({ ...row, fx: { ...row.fx, base: 'ILS', quote: 'USD' } })], date));
+});
+test('valuation: correction input requires reason and forbids self replacement', () => {
+  const { recordedAt: _recordedAt, ...input } = observation;
+  equal(_recordedAt, '2024-03-01T00:00:00Z');
+  equal(observationInputSchema.safeParse({ ...input, supersedesId: secondId }).success, false);
+  equal(observationInputSchema.safeParse({ ...input, supersedesId: id, note: 'Correction' }).success, false);
+  equal(observationInputSchema.safeParse({ ...input, money: { amount: 1, currency: 'ILS' } }).success, false);
+});
+test('valuation: cash requires ledger at command boundary', () => {
+  equal(createAccountSchema.safeParse({ ...observedRecord, account: { ...observedRecord.account, type: 'CASH' } }).success, false);
+});
 const fx = fxRateSchema.parse(rawFx);
 test('household contract reuses canonical UUID and UTC types', () => {
   equal(householdSchema.parse({ id, name: 'Synthetic household', createdAt: '2024-02-29T12:00:00Z' }).id, id);

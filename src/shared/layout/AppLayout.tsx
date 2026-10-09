@@ -26,6 +26,7 @@ export function AppLayout() {
           <NavLink to="/" end><span aria-hidden="true">⌂</span>הבית שלנו</NavLink>
           <NavLink to="/about"><span aria-hidden="true">◎</span>על המרחב</NavLink>
           <NavLink to="/household"><span aria-hidden="true">⌂</span>הבית המשותף</NavLink>
+          <NavLink to="/accounts"><span aria-hidden="true">▤</span>חשבונות</NavLink>
           <NavLink to="/sign-in"><span aria-hidden="true">↗</span>כניסה</NavLink>
         </nav>
         <div className="household-note">
