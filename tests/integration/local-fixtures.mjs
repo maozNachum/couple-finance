@@ -22,6 +22,8 @@ export async function createFixture() {
       // Explicit deletion is limited to this fixture's generated synthetic households.
       localSql(`begin;
         delete from finance.balance_observations where household_id in ('${households[0]}','${households[1]}');
+        delete from finance.fx_evidence where household_id in ('${households[0]}','${households[1]}');
+        delete from finance.account_sources where household_id in ('${households[0]}','${households[1]}');
         delete from finance.accounts where household_id in ('${households[0]}','${households[1]}');
         delete from finance.household_members where household_id in ('${households[0]}','${households[1]}');
         delete from finance.households where id in ('${households[0]}','${households[1]}'); commit;`);

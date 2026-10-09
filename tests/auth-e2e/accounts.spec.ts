@@ -26,7 +26,8 @@ test('manual account, dated FX, correction, archival and revoked access', async 
     await observation.getByLabel('כיסוי השווי').selectOption('PARTIAL');
     await observation.getByLabel('שער ידני לתאריך התצפית:', { exact: false }).fill('3.72');
     await observation.getByRole('button', { name: 'שמירת תצפית' }).click();
-    await expect(page.getByText('שווי במטבע היעד:')).toContainText('-372.00 ILS');
+    await expect(page.getByText('המרה היסטורית לתאריך התצפית:')).toContainText('-372.00 ILS');
+    await expect(page.getByText('המרה לפי ראיית שער היסטורית; אינה שווי לפי שער עדכני.')).toBeVisible();
     await expect(page.getByText('שווי חלקי — חסרים רכיבים')).toBeVisible();
     await page.getByLabel('שווי נכון לתאריך').fill('2026-09-30');
     await expect(page.getByText('אין תצפית שווי בתאריך זה או לפניו.')).toBeVisible();

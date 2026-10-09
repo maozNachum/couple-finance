@@ -1,5 +1,7 @@
 # Task 4 delivery report — Accounts & Dated Valuations
 
+This report records the initial Task 4 delivery at `0b49ab9`. Its source-persistence, uniqueness and FX limitations below are superseded by the [architecture review-fixes report](task-4-review-fixes.md), which contains the current design and verification results. Original test counts remain historical evidence.
+
 Scope: Task 4 only. Local manual accounts and dated valuations, preserving the modular monolith, Task 2 contracts and Task 3 invited-user/session/household isolation. No Task 5 implementation, ingestion, external provider, live integration, dashboard, financial execution or deployment.
 
 ## Baseline

@@ -21,7 +21,8 @@ export function AccountDetails({ record, history, asOf, owner, busy, command }: 
         <p>תצפית אחרונה ל־{position.observation.date}: <bdi>{displayMoney(position.observation.money)}</bdi></p>
         <p>{position.observation.coverage === 'PARTIAL' ? 'שווי חלקי — חסרים רכיבים' : 'כיסוי מלא לפי התצפית'}</p>
         {position.observation.date !== asOf && <p>התצפית קודמת לתאריך שנבחר; זה אינו שווי שנמדד באותו יום.</p>}
-        <p>{position.state === 'MISSING_FX' ? 'חסר שער חליפין לתאריך התצפית.' : <>שווי במטבע היעד: <bdi>{displayMoney(position.money)}</bdi></>}</p>
+        <p>המרה לפי ראיית שער היסטורית; אינה שווי לפי שער עדכני.</p>
+        <p>{position.state === 'MISSING_FX' ? 'חסר שער חליפין לתאריך התצפית.' : <>המרה היסטורית לתאריך התצפית: <bdi>{displayMoney(position.money)}</bdi></>}</p>
       </>}
     </div>
     {account.status === 'ACTIVE' && <>
@@ -35,7 +36,7 @@ export function AccountDetails({ record, history, asOf, owner, busy, command }: 
       <p>{row.date} · <bdi>{displayMoney(row.money)}</bdi> · {row.coverage === 'PARTIAL' ? 'חלקי' : 'מלא'}{superseded.has(row.id) ? ' · הוחלף בתיקון' : ''}</p>
       <p>נרשם: <bdi>{row.recordedAt}</bdi></p>{row.note && <p>{row.note}</p>}
       {row.fx && <p>שער: <bdi>1 {row.fx.base} = {row.fx.rate} {row.fx.quote}</bdi> · {row.fx.effectiveDate}</p>}
-      {account.status === 'ACTIVE' && !superseded.has(row.id) && <button disabled={busy} onClick={() => setCorrection(row)}>תיקון תצפית {row.date}</button>}
+      {account.status === 'ACTIVE' && row.sourceId === record.manualSourceId && !superseded.has(row.id) && <button disabled={busy} onClick={() => setCorrection(row)}>תיקון תצפית {row.date}</button>}
     </li>)}</ol></details>}
   </article>;
 }

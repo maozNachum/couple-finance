@@ -49,6 +49,8 @@ This is a local foundation, not a deployed financial application. See [Task 2 co
 
 Task 4 adds manual account management and immutable dated observations; see [decisions](docs/task-4-decisions.md), [delivery report](docs/task-4-report.md) and the [recommended Task 5 prompt](docs/task-5-prompt.md). Account history is corrected by supersession, never by editing a current balance.
 
+The [Task 4 architecture review fixes](docs/task-4-review-fixes.md) separate source relationships from accounts, define dated source authority and preserve reusable historical FX evidence independently of future reporting-date valuation.
+
 ## Git workflow for future tasks
 
 1. Implement one bounded, explicitly requested task at a time.

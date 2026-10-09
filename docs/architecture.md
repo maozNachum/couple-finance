@@ -48,6 +48,8 @@ See [portable contracts](portable-contracts.md) for numeric bounds, error behavi
 
 Task 4's bounded accounts feature uses core/contracts/valuation and core/domain/money/valuation through exact reviewed aliases. Pure as-of selection/FX calls remain in core. Atomic persistence and authorization use curated SQL invoker commands; no unused TypeScript application service is introduced. A single invoker snapshot reads coherent account/observation history without the Data API row cap. See [Task 4 decisions](task-4-decisions.md).
 
+Account sources are provider-neutral relationships, separate from canonical Account identity. Core selects a dated authority deterministically; SQL enforces household-scoped references, per-source correction chains and immutable reusable historical FX evidence. Historical observation conversion is explicitly distinct from future reporting-date FX selection: adapters normalize rates, an application use case chooses eligible evidence for the requested date, and core performs exact conversion. No live adapter or unused rate-provider abstraction is added. See [review fixes](task-4-review-fixes.md).
+
 - Directories: kebab-case. Components: PascalCase.tsx. Hooks: useName.ts. Other TypeScript: kebab-case.ts.
 - Types: PascalCase. Functions: camelCase. SQL: snake_case. Migrations: CLI-generated timestamps.
 - Unit/components: colocated `.test.ts(x)`. Architecture: `tests/architecture`. E2E: `tests/e2e`. Runtime compatibility: `tests/runtime`.

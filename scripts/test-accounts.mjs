@@ -46,9 +46,16 @@ try {
   const latest = (await a.from('accounts').select('payload')).data[0].payload;
   equal(latest.version,2);
   equal(latest.account.id,account.id);
+  equal(latest.sources,[{id:record.manualSourceId,householdId:account.householdId,accountId:account.id,kind:'MANUAL',authoritativeFrom:'0001-01-01'}]);
   equal((await call(a,'record_balance',{...row,id:randomUUID(),date:'2026-10-02',money:{amount:'1.000000000',currency:'USD'}})).error.code,'INVALID_INPUT');
   const fx = { id: randomUUID(),base:'USD',quote:'ILS',rate:'3.72',effectiveDate:'2026-10-02',recordedAt:'2026-10-01T00:00:00Z',origin:{kind:'MANUAL',sourceId:record.manualSourceId} };
   equal((await call(a,'record_balance',{...row,id:randomUUID(),date:'2026-10-02',money:{amount:'-100',currency:'USD'},fx})).ok,true);
+  const another = { ...record, account: { ...account, id: randomUUID() }, manualSourceId: randomUUID() };
+  equal((await call(a,'create_account',another)).ok,true);
+  const shared = {...row,id:randomUUID(),accountId:another.account.id,sourceId:another.manualSourceId,date:'2026-10-02',money:{amount:'20',currency:'USD'},fx};
+  equal((await call(a,'record_balance',shared)).ok,true);
+  equal((await call(a,'record_balance',{...shared,id:randomUUID(),supersedesId:shared.id,note:'Conflicting FX evidence',fx:{...fx,rate:'4'}})).error.code,'INVALID_INPUT');
+  equal((await call(a,'record_balance',{...shared,id:randomUUID(),supersedesId:shared.id,note:'Reuse unchanged rate',money:{amount:'21',currency:'USD'}})).ok,true);
   const foreign = await a.schema('finance').from('accounts').select('*');
   equal(foreign.error !== null,true);
   // A scalar snapshot must not inherit PostgREST's default 1,000-row cap.
@@ -57,7 +64,7 @@ try {
     from generate_series(0,1000) n;`);
   const snapshot = await a.rpc('account_snapshot');
   equal(snapshot.error,null);
-  equal(snapshot.data.observations.length,1004);
+  equal(snapshot.data.observations.length,1006);
   equal((await b.rpc('account_snapshot')).data,{accounts:[],observations:[]});
   const before = (await a.auth.getSession()).data.session.access_token;
   localSql(`update finance.household_members set status='REVOKED' where household_id='${uuid(account.householdId)}' and user_id='${uuid(fixture.users[0].id)}';`);
