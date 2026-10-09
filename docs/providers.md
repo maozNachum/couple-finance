@@ -4,6 +4,10 @@ There are no provider adapters or external connections in Tasks 1–2. Task 2 de
 
 Sources support MANUAL, FILE_IMPORT or LIVE_SYNC. Manual entries use canonical validated commands; they do not pretend to be network providers. Capability-based file/live adapters live exclusively under `supabase/functions/_shared/providers/<provider>/`.
 
+Task 4 now persists provider-neutral `finance.account_sources` relationships with dated authority, but adds no adapters or connection workflow. A future cutover attaches a new source to the existing account, reconciles overlap, and appoints an activation date. Read selection uses that source from activation onward; it never changes the account ID or silently fills missing observations with the prior source. See [Task 4 review fixes](task-4-review-fixes.md).
+
+Future FX adapters normalize rate data to the canonical FxRate contract inside the provider boundary. An application use case will select the latest eligible rate for a requested reporting date, explicit pair and approved provenance policy, then invoke pure core conversion. Eligibility, source priority, revisions, stale/missing handling and authorization belong to that use case, not JSX or a networked core. Return the requested reporting date, balance measurement date and selected rate effective date separately. Current observation FX is immutable historical evidence and must never be silently replaced with the newly selected reporting rate. No live FX client, fixed production rate or unused provider interface is implemented now.
+
 Pipeline: raw input → provider validation → normalization → canonical validation → staging → identity/deduplication → reconciliation → deterministic categorization → atomic commit → derived-summary invalidation.
 
 Provider-specific DTOs never enter the frontend or core model. Capabilities may include accounts, balances, transactions, pending transactions, obligations, holdings, historical snapshots and incremental sync. An adapter must report data dates and coverage honestly; not every institution supplies every capability.

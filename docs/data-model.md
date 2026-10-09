@@ -1,6 +1,6 @@
 # Financial model
 
-Task 2 implements [canonical contracts and pure primitives](portable-contracts.md). Task 3 adds only identity tables: profiles, households and household_members. Financial tables, persistence and reporting calculations remain future work.
+Task 2 implements [canonical contracts and pure primitives](portable-contracts.md). Task 3 adds profiles, households and durable household_members. Task 4 adds accounts and immutable balance_observations; transactions, ledger entries and reporting totals remain later work. See [Task 4 decisions](task-4-decisions.md).
 
 ## Invariants
 
@@ -33,6 +33,10 @@ Implemented precision rules: decimal operands have at most 18 integer and 12 fra
 Transactions carry one signed account movement and one or more allocations whose signed Money sums exactly to the parent in the same currency. An unknown categorization uses a full-amount UNCLASSIFIED allocation. Categories do not determine effects. The schema enforces these local invariants now; later database tasks must enforce them atomically with household-scoped references and membership checks.
 
 ## Future table families
+
+Task 4 persists `account_sources` separately from `accounts`; the canonical Account DTO remains unchanged. The read envelope contains source relationships and a derived manual-source ID for the existing UI. Multiple MANUAL/FILE_IMPORT/LIVE_SYNC relationships preserve one stable account, with one MANUAL relationship per account. Latest eligible dated activation selects exactly one authority; no observation from an earlier authority fills a cutover gap. Corrections and root uniqueness are scoped to household/account/source/date. Source identity and appointed activation dates are immutable; current clients only create the initial manual source.
+
+Observations retain exact signed Money, date, coverage, server recording timestamp and optional same-source/date predecessor. Embedded historical FX snapshots reference household-scoped immutable `fx_evidence`. Reusing identical rate evidence is allowed across observations and accounts; reusing its ID with different evidence is rejected. An FX origin identifies the rate's provenance, independently of the account's balance source. Current as-of views use corrected knowledge and historical conversion, not frozen recorded-time reports or reporting-date FX. LEDGER accounts remain unavailable until Task 5 supplies the ledger. See [review fixes](task-4-review-fixes.md) for source cutover and dynamic FX boundaries.
 
 Identity: profiles, households, household_members, currencies. Accounts: institutions, financial_connections, accounts, account_sources, balance_observations, fx_rates. Activity: transactions, transaction_allocations, transaction_sources, transfer_links, categories, merchants, categorization_rules. Planning: budgets, budget_allocations, recurring_series, obligations, obligation_matches. Ingestion: ingestion_runs, ingestion_items, import_profiles. Private operations: connection_credentials, audit_logs, command_receipts. Derived insights: financial_insights.
 

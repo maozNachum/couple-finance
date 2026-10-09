@@ -6,6 +6,7 @@ import { NotFoundPage } from '@/pages/not-found/NotFoundPage';
 import { SignInPage } from '@/pages/sign-in/SignInPage';
 import { ConfirmPage } from '@/pages/confirm/ConfirmPage';
 import { HouseholdPage } from '@/pages/household/HouseholdPage';
+import { AccountsPage } from '@/pages/accounts/AccountsPage';
 
 export function AppRoutes() {
   return (
@@ -16,6 +17,7 @@ export function AppRoutes() {
         <Route path="sign-in" element={<SignInPage />} />
         <Route path="auth/confirm" element={<ConfirmPage />} />
         <Route path="household" element={<HouseholdPage />} />
+        <Route path="accounts" element={<AccountsPage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Route>
     </Routes>

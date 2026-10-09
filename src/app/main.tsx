@@ -4,6 +4,7 @@ import { applicationContext } from '@finance/contracts/application-context';
 import { App } from './App';
 import './styles/global.css';
 import './styles/identity.css';
+import './styles/accounts.css';
 
 document.documentElement.lang = applicationContext.locale;
 document.documentElement.dir = applicationContext.direction;

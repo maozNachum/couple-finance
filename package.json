@@ -17,7 +17,7 @@
     "check:deno": "deno check --cached-only --config tests/runtime/deno.json tests/runtime/application-context.deno.ts tests/runtime/core.deno.ts tests/runtime/permissions.deno.ts && deno test --cached-only --no-prompt --config tests/runtime/deno.json tests/runtime/application-context.deno.ts tests/runtime/core.deno.ts tests/runtime/permissions.deno.ts",
     "build": "npm run check:architecture && vite build && node scripts/build-core-probe.mjs",
     "test:e2e": "playwright test",
-    "verify": "npm run typecheck && npm run lint && npm run check:architecture && npm test && npm run check:deno && npm run build && npm run test:e2e && npm run db:test && npm run db:lint && npm run db:advisors && npm run test:auth && npm run test:auth:e2e",
+    "verify": "npm run typecheck && npm run lint && npm run check:architecture && npm test && npm run check:deno && npm run build && npm run test:e2e && npm run db:test && npm run db:lint && npm run db:advisors && npm run test:auth && npm run test:accounts && npm run test:auth:e2e",
     "db:start": "node scripts/local-stack.mjs",
     "db:test": "supabase test db --local",
     "db:lint": "supabase db lint --local",
@@ -26,7 +26,8 @@
     "test:auth": "node scripts/test-auth.mjs",
     "test:auth:e2e": "node scripts/test-auth-browser.mjs",
     "local:config": "node scripts/local-config.mjs",
-    "local:auth-diagnostics": "node scripts/local-auth-diagnostics.mjs"
+    "local:auth-diagnostics": "node scripts/local-auth-diagnostics.mjs",
+    "test:accounts": "node scripts/test-accounts.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "2.117.3",

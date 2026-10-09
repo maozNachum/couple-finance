@@ -36,7 +36,7 @@ export function HouseholdPanel() {
     navigate('/sign-in', { replace: true });
   }
   return <section className="identity-panel" aria-label="פרטי הבית">
-    {failed ? <div role="alert"><p>לא ניתן לטעון את הבית. התחברו מחדש ונסו שוב.</p><Link to="/sign-in">להתחברות</Link></div> : !result ? <p role="status">טוענים את הבית…</p> : result.households.length === 0 ? <p role="status">אין כרגע גישה לבית. יש לפנות למי שהזמין אתכם.</p> : result.households.map((household) => <article key={household.id}><h2>{household.name}</h2><p>חברים פעילים: {result.members.filter((member) => member.householdId === household.id && member.status === 'ACTIVE').length}</p><p>אין עדיין חשבונות או נתונים פיננסיים.</p></article>)}
+    {failed ? <div role="alert"><p>לא ניתן לטעון את הבית. התחברו מחדש ונסו שוב.</p><Link to="/sign-in">להתחברות</Link></div> : !result ? <p role="status">טוענים את הבית…</p> : result.households.length === 0 ? <p role="status">אין כרגע גישה לבית. יש לפנות למי שהזמין אתכם.</p> : result.households.map((household) => <article key={household.id}><h2>{household.name}</h2><p>חברים פעילים: {result.members.filter((member) => member.householdId === household.id && member.status === 'ACTIVE').length}</p><p><Link to="/accounts">לחשבונות ולתצפיות השווי</Link></p></article>)}
     <button onClick={() => { void signOut(); }}>יציאה</button>
   </section>;
 }

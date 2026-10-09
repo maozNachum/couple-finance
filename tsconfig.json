@@ -78,6 +78,12 @@
       ],
       "@finance/contracts/household": [
         "./supabase/functions/_shared/core/contracts/household.ts"
+      ],
+      "@finance/contracts/valuation": [
+        "./supabase/functions/_shared/core/contracts/valuation.ts"
+      ],
+      "@finance/domain/money/valuation": [
+        "./supabase/functions/_shared/core/domain/money/valuation.ts"
       ]
     }
   },

@@ -1,6 +1,8 @@
 # Security boundaries
 
-Task 3 adds a local Supabase Auth/database foundation containing synthetic test data only. See [local auth](local-auth.md) for invitation, session, grant, RLS and audit boundaries. No financial tables, provider, secret store, AI or deployment is configured.
+Task 3 adds a local Supabase Auth/database foundation containing synthetic test data only. See [local auth](local-auth.md) for invitation, session, grant, RLS and audit boundaries. Task 4 extends those same controls to manual accounts and immutable observations; see [its delivery report](task-4-report.md). No provider, secret store, AI or deployment is configured.
+
+Task 4 review fixes add RLS-protected `account_sources` and immutable household-scoped `fx_evidence`. Observation source references include household/account/source; predecessor references additionally include date. Authenticated users may establish only an initial MANUAL authority and cannot update/delete sources or FX evidence. Future source activation requires a separately authorized server use case; no current client command appoints imports/live sources. Source creation and account creation are atomic. Reusable FX IDs bind identical evidence within a household, without exposing another household's evidence. See [review-fixes evidence](task-4-review-fixes.md).
 
 ## Authorization requirements
 
