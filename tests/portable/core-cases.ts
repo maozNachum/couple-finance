@@ -16,10 +16,11 @@ import { safeErrorSchema, internalSafeError } from '@finance/contracts/safe-erro
 import { householdSchema, householdMemberSchema } from '@finance/contracts/household';
 import { accountRecordSchema, observationSchema, observationInputSchema, createAccountSchema } from '@finance/contracts/valuation';
 import { valueAccount } from '@finance/domain/money/valuation';
+import { ledgerCases } from './ledger-cases.ts';
 
 // One assertion corpus runs unchanged in Vitest/jsdom, permission-free Deno,
 // and an actual production-bundled browser under four runtime timezones.
-export const coreCases: { name: string; run: () => void }[] = [];
+export const coreCases: { name: string; run: () => void }[] = [...ledgerCases];
 function test(name: string, run: () => void): void { coreCases.push({ name, run }); }
 function equal(actual: unknown, expected: unknown): void {
   if (JSON.stringify(actual) !== JSON.stringify(expected)) throw new Error(`Expected ${JSON.stringify(expected)}, received ${JSON.stringify(actual)}`);

@@ -1,0 +1,17 @@
+# Recommended next request — Task 6 only
+
+Start Task 6 — Categories and deterministic rules — only after Task 5 has been reviewed and merged. Do not implement ingestion, reconciliation, reporting, budgets or later roadmap work.
+
+Before coding, fetch current master, verify the Task 5 merge and actual post-merge CI commit, read every applicable AGENTS.md and the approved architecture/data model/security/roadmap/portable contracts plus Tasks 2–5 delivery and decision reports. Start a separate feature branch from verified master. Identify contract extensions before changing them.
+
+Implement household-scoped categories and explicit deterministic categorization rules, with the minimum useful Hebrew RTL UI. Define category identity, archival/rename behavior, optional hierarchy only if justified by the approved references, rule order/ties, matching fields and normalization. Do not infer income/expense or other financial effects from category names or movement signs. Transfers, refunds, debt principal, interest, investment contributions and ADJUSTMENT semantics must remain explicit.
+
+Preserve Task 5 stable transaction identity, immutable financial revisions, complete allocation reconciliation, durable household/member references and archived-account behavior. A category change must not silently mutate Money, financial dates, transaction state or historical FX. Define whether categorization is a new audited financial revision or separately versioned metadata before implementing; retain reproducible history. Canonical categoryId currently exists but Task 5 manual persistence rejects it until a household-scoped category FK and authorized command are implemented. Never relax that boundary without replacing it with database enforcement.
+
+Respect USER locks. Unknown meaning stays UNCLASSIFIED. Rule preview should explain the chosen rule and leave ambiguous/unmatched entries visibly unresolved. A preview must not write financial history. Applying a rule must be explicit, idempotent, auditable and concurrency-safe, with bounded atomic batches where necessary. No hidden automatic reclassification on load or sign-in.
+
+Keep financial/categorization calculations in portable pure core, runtime orchestration outside it and browser access behind exact reviewed aliases. Enforce live database session/household authorization, RLS, restrictive composite references, least privilege and SafeError outputs. Keep finance/private unexposed and sensitive data out of offline browser storage. Preserve existing accounts, observed valuations, historical FX and ledger calculations.
+
+Extend and run the entire verification chain: TypeScript/lint/boundaries, shared Vitest/Deno/browser corpus, production build, real pgTAP/RLS, GoTrue/PostgREST integration, rule ordering/lock tests, retries/concurrent changes, desktop/mobile RTL/accessibility, SQL lint/security advisors and replay only on a verified disposable local database. Use synthetic data and retain Tasks 3–5 regressions. Test revoked members with unchanged JWTs, deleted sessions/users and cross-household category/rule references.
+
+After successful verification, commit and push a new PR targeting master; do not merge or deploy. Deliver exact results, limits and unresolved decisions, plus a Task 7 prompt aligned with CSV mapping, private upload isolation and preview. Stop after Task 6 for human review.

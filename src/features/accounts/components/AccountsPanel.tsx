@@ -37,7 +37,7 @@ export function AccountsPanel() {
       <div className="accounts-toolbar"><label>שווי נכון לתאריך<input aria-label="שווי נכון לתאריך" type="date" min="0001-01-01" max="9999-12-31" value={asOf} onChange={(event) => setAsOf(event.target.value)} /></label><button disabled={busy} onClick={() => setReload((n) => n + 1)}>רענון</button></div>
       {error && <p role="alert">{error}</p>}
       {data.accounts.length === 0 && <p>אין עדיין חשבונות. אפשר ליצור את החשבון הראשון.</p>}
-      {data.accounts.map((record) => <AccountDetails key={`${record.account.id}-${record.version}-${reload}`} record={record} history={data.observations.filter((row) => row.accountId === record.account.id && row.householdId === record.account.householdId)} asOf={asOf}
+      {data.accounts.map((record) => <AccountDetails key={`${record.account.id}-${record.version}-${reload}`} record={record} ledgerHistory={data.ledgerHistory.filter((row) => row.transaction.accountId === record.account.id)} history={data.observations.filter((row) => row.accountId === record.account.id && row.householdId === record.account.householdId)} asOf={asOf}
         owner={record.account.ownership.kind === 'HOUSEHOLD' ? 'משותף לבית' : data.members.find((m) => record.account.ownership.kind === 'MEMBER' && m.id === record.account.ownership.memberId)?.displayName ?? 'חבר בית היסטורי'} busy={busy} command={command} />)}
       <CreateAccountForm key={reload} data={data} busy={busy} submit={(input) => command('create_account', input)} />
     </>}

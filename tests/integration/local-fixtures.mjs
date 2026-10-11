@@ -21,6 +21,11 @@ export async function createFixture() {
       for (const user of users) await admin.auth.admin.deleteUser(user.id);
       // Explicit deletion is limited to this fixture's generated synthetic households.
       localSql(`begin;
+        delete from private.transaction_receipts where household_id in ('${households[0]}','${households[1]}');
+        delete from private.transaction_audit where household_id in ('${households[0]}','${households[1]}');
+        delete from finance.transaction_allocations where household_id in ('${households[0]}','${households[1]}');
+        delete from finance.transaction_revisions where household_id in ('${households[0]}','${households[1]}');
+        delete from finance.transactions where household_id in ('${households[0]}','${households[1]}');
         delete from finance.balance_observations where household_id in ('${households[0]}','${households[1]}');
         delete from finance.fx_evidence where household_id in ('${households[0]}','${households[1]}');
         delete from finance.account_sources where household_id in ('${households[0]}','${households[1]}');

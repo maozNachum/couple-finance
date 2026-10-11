@@ -1,4 +1,7 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
+import type { TransactionRevision } from '@finance/contracts/ledger';
+import { ledgerBalance } from '@finance/domain/money/ledger';
 import type { AccountRecord, Observation } from '@finance/contracts/valuation';
 import { financialDateSchema } from '@finance/contracts/financial-date';
 import { displayMoney } from '@finance/domain/money/money';
@@ -6,18 +9,22 @@ import { valueAccount } from '@finance/domain/money/valuation';
 import { accountTypes } from '../model/presentation';
 import { ObservationForm } from './ObservationForm';
 
-export function AccountDetails({ record, history, asOf, owner, busy, command }: { record: AccountRecord; history: readonly Observation[]; asOf: string; owner: string; busy: boolean; command: (name: 'update_account' | 'record_balance', input: unknown) => Promise<void> }) {
+export function AccountDetails({ record, history, ledgerHistory, asOf, owner, busy, command }: { record: AccountRecord; history: readonly Observation[]; ledgerHistory: readonly TransactionRevision[]; asOf: string; owner: string; busy: boolean; command: (name: 'update_account' | 'record_balance', input: unknown) => Promise<void> }) {
   const [correction, setCorrection] = useState<Observation | null>(null);
   const { account } = record;
   const date = financialDateSchema.safeParse(asOf);
   let position;
   try { position = date.success ? valueAccount(record, history, date.data) : null; } catch { position = null; }
   const superseded = new Set(history.map((row) => row.supersedesId));
+  const ledger = account.balancePolicy === 'LEDGER' ? ledgerBalance(record, ledgerHistory, asOf) : null;
   return <article className="account-card">
     <h2>{account.name}</h2><p>{accountTypes[account.type]} · {owner} · {account.currency} · {account.status === 'ARCHIVED' ? 'בארכיון' : 'פעיל'}</p>
     <p>{account.balancePolicy === 'OBSERVED' ? 'מדיניות: תצפיות שווי מתוארכות' : 'מדיניות: יתרה מתנועות'}</p>
     <div aria-live="polite">
-      {!position ? <p>לא ניתן לחשב שווי לתאריך שנבחר. בדקו את התאריך והנתונים.</p> : position.state === 'LEDGER_UNAVAILABLE' ? <p>יתרה אינה זמינה: ספר התנועות יתווסף בשלב הבא.</p> : position.state === 'MISSING' ? <p>אין תצפית שווי בתאריך זה או לפניו.</p> : <>
+      {!position ? <p>לא ניתן לחשב שווי לתאריך שנבחר. בדקו את התאריך והנתונים.</p> : position.state === 'LEDGER_UNAVAILABLE' ? <>
+        {ledger?.state === 'KNOWN' || ledger?.state === 'INCOMPLETE' ? <p>{ledger.state === 'KNOWN' ? 'יתרה מחושבת' : 'יתרה חלקית — חסרים נתונים'}: <bdi>{displayMoney(ledger.money)}</bdi></p> : <p>{ledger?.state === 'UNKNOWN' ? 'יתרה לא ידועה — אין יתרת פתיחה פעילה לתאריך שנבחר.' : 'לא ניתן לחשב יתרה. בדקו את הנתונים והתאריך.'}</p>}
+        <Link to="/transactions">לרישום תנועות ויתרת פתיחה</Link>
+      </> : position.state === 'MISSING' ? <p>אין תצפית שווי בתאריך זה או לפניו.</p> : <>
         <p>תצפית אחרונה ל־{position.observation.date}: <bdi>{displayMoney(position.observation.money)}</bdi></p>
         <p>{position.observation.coverage === 'PARTIAL' ? 'שווי חלקי — חסרים רכיבים' : 'כיסוי מלא לפי התצפית'}</p>
         {position.observation.date !== asOf && <p>התצפית קודמת לתאריך שנבחר; זה אינו שווי שנמדד באותו יום.</p>}

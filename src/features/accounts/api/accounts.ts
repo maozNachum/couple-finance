@@ -2,6 +2,7 @@ import { browserClient } from '@/shared/infrastructure/supabase-client';
 import { accountRecordsSchema, observationsSchema, createAccountSchema, updateAccountSchema, observationInputSchema } from '@finance/contracts/valuation';
 import { householdListSchema, householdMemberListSchema } from '@finance/contracts/household';
 import { internalSafeError, safeErrorSchema } from '@finance/contracts/safe-error';
+import { transactionRevisionsSchema } from '@finance/contracts/ledger';
 
 function clientOrThrow() { const client = browserClient(); if (!client) throw internalSafeError(); return client; }
 const invalid = () => safeErrorSchema.parse({ code: 'INVALID_INPUT', kind: 'VALIDATION', safeMessage: 'Some values are invalid.', retryable: false });
@@ -11,7 +12,7 @@ export async function loadAccounts() {
   if (user.error || !user.data.user) throw internalSafeError();
   // One database snapshot keeps correction chains coherent and avoids Data API row truncation.
   const [snapshot, households, members] = await Promise.all([
-    client.rpc('account_snapshot'),
+    client.rpc('transaction_snapshot'),
     client.from('households').select('id,name,created_at'),
     client.from('household_members').select('id,household_id,user_id,display_name,status'),
   ]);
@@ -19,6 +20,7 @@ export async function loadAccounts() {
   try {
     return {
       accounts: accountRecordsSchema.parse(snapshot.data?.accounts), observations: observationsSchema.parse(snapshot.data?.observations),
+      ledgerHistory: transactionRevisionsSchema.parse(snapshot.data?.history),
       households: householdListSchema.parse(households.data.map((row) => ({ id: row.id, name: row.name, createdAt: String(row.created_at).replace(/\+00:00$/, 'Z') }))),
       members: householdMemberListSchema.parse(members.data.map((row) => ({ id: row.id, householdId: row.household_id, userId: row.user_id, displayName: row.display_name, status: row.status }))),
     };

@@ -1,6 +1,6 @@
 # Financial model
 
-Task 2 implements [canonical contracts and pure primitives](portable-contracts.md). Task 3 adds profiles, households and durable household_members. Task 4 adds accounts and immutable balance_observations; transactions, ledger entries and reporting totals remain later work. See [Task 4 decisions](task-4-decisions.md).
+Task 2 implements [canonical contracts and pure primitives](portable-contracts.md). Task 3 adds profiles, households and durable household_members. Task 4 adds accounts and immutable balance_observations. Task 5 adds stable transactions, immutable revisions, relational allocations and dated ledger calculation; reporting totals remain later work. See [Task 4 decisions](task-4-decisions.md) and [Task 5 decisions](task-5-decisions.md).
 
 ## Invariants
 
