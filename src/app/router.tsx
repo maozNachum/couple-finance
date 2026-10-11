@@ -1,3 +1,4 @@
+import { CategoriesPage } from '@/pages/categories/CategoriesPage';
 import { Route, Routes } from 'react-router-dom';
 import { AppLayout } from '@/shared/layout/AppLayout';
 import { HomePage } from '@/pages/home/HomePage';
@@ -19,6 +20,7 @@ export function AppRoutes() {
         <Route path="auth/confirm" element={<ConfirmPage />} />
         <Route path="household" element={<HouseholdPage />} />
         <Route path="accounts" element={<AccountsPage />} />
+        <Route path="categories" element={<CategoriesPage />} />
         <Route path="transactions" element={<TransactionsPage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Route>

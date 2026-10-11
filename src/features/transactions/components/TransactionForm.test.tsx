@@ -26,8 +26,7 @@ it.each(reportingEffectSchema.options)('new %s movement keeps categorization abs
 
 it.each([false, true])('correction preserves historical category metadata (category present: %s)', async (withCategory) => {
   const user = userEvent.setup(), submit = vi.fn();
-  // Category persistence remains deliberately unavailable in Task 5. Exercise the
-  // form against a canonical future category without relaxing that command guard.
+  // Task 6 corrections retain allocation/category identity; SQL validates the prior decision.
   const transaction = transactionSchema.parse({ ...historical.transaction, allocations: historical.transaction.allocations.map((a) => ({ ...a, ...(withCategory ? { categoryId: id(7) } : {}) })) });
   render(<TransactionForm record={record} correction={{ ...historical, transaction }} members={[]} disabled={false} submit={submit} />);
   await user.type(screen.getByLabelText('סיבת התיקון / הערה'), 'Synthetic correction');
@@ -35,7 +34,7 @@ it.each([false, true])('correction preserves historical category metadata (categ
   const raw = submit.mock.calls[0]?.[0];
   const output = transactionSchema.parse(raw.transaction);
   const original = transaction.allocations[0]!;
-  expect(output.allocations[0]).toEqual({ ...original, id: output.allocations[0]!.id });
+  expect(output.allocations[0]).toEqual(original);
   expect({ ...output, allocations: transaction.allocations }).toEqual(transaction);
-  expect(manualTransactionCommandSchema.safeParse(raw).success).toBe(!withCategory);
+  expect(manualTransactionCommandSchema.safeParse(raw).success).toBe(true);
 });

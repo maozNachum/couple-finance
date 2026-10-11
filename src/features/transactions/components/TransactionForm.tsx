@@ -9,7 +9,7 @@ type DraftSplit = Omit<Allocation, 'id' | 'money'> & { id: string; money: { amou
 
 export function TransactionForm({ record, correction, members, disabled, submit }: { record: AccountRecord; correction: TransactionRevision | null; members: readonly HouseholdMember[]; disabled: boolean; submit: (input: unknown) => void }) {
   const [identity] = useState(() => ({ transaction: correction?.transaction.id ?? crypto.randomUUID(), revision: crypto.randomUUID(), key: crypto.randomUUID() }));
-  const [splits, setSplits] = useState<DraftSplit[]>(() => correction?.transaction.allocations.map((a) => ({ ...a, id: crypto.randomUUID() })) ?? [{ id: crypto.randomUUID(), effect: 'UNCLASSIFIED', ownership: record.account.ownership, money: { amount: '', currency: record.account.currency }, categorization: { origin: 'UNCLASSIFIED', userLocked: false } }]);
+  const [splits, setSplits] = useState<DraftSplit[]>(() => correction?.transaction.allocations.map((a) => ({ ...a })) ?? [{ id: crypto.randomUUID(), effect: 'UNCLASSIFIED', ownership: record.account.ownership, money: { amount: '', currency: record.account.currency }, categorization: { origin: 'UNCLASSIFIED', userLocked: false } }]);
   const [kind, setKind] = useState(correction?.entryKind ?? 'MOVEMENT');
   const { account } = record;
   return <form className="identity-form transaction-form" aria-label="תנועה ידנית" onSubmit={(event) => {

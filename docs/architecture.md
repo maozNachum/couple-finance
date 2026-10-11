@@ -61,3 +61,9 @@ Account sources are provider-neutral relationships, separate from canonical Acco
 ## Tooling references
 
 Compatibility checked against official [Vite](https://vite.dev/guide/), [Vitest](https://vitest.dev/guide/), [Deno TypeScript](https://docs.deno.com/runtime/fundamentals/typescript/), [Playwright](https://playwright.dev/docs/intro), and [Supabase dependencies](https://supabase.com/docs/guides/functions/dependencies) documentation. Exact versions are recorded in package.json and package-lock.json. TypeScript stays on 5.9.3 within typescript-eslint's declared compatibility; no peer dependency overrides are used.
+
+## Task 6 categorization
+
+The categorization feature owns definitions, preview orchestration, explicit decisions and their Hebrew interface at /categories, linked from transaction history. Portable core/contracts/categorization and core/domain/categorization have exact reviewed aliases. The pure preview is shared across browser/Vitest/Deno; PostgreSQL independently revalidates the same literal normalization/order rules at the authorization boundary.
+
+Category-only changes append Task 5 transaction revisions (policy A). A private internal writer retains the original financial validation and receipt/audit transaction. Its EXECUTE privilege is withheld from clients; the existing manual wrapper only preserves prior category metadata, and the new category wrapper constructs its entire financial body from stored history. Clients cannot supply changed financial fields to that command. The correction form now retains existing allocation IDs. See [Task 6 decisions](task-6-decisions.md).
