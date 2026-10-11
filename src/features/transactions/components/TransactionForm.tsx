@@ -22,7 +22,8 @@ export function TransactionForm({ record, correction, members, disabled, submit 
         allocations: splits.map((s, i) => ({ id: s.id, money: { amount: form.get(`split-${i}`), currency: account.currency }, effect: kind === 'OPENING' ? 'ADJUSTMENT' : form.get(`effect-${i}`),
           ownership: form.get(`owner-${i}`) === 'HOUSEHOLD' ? { kind: 'HOUSEHOLD' } : { kind: 'MEMBER', memberId: form.get(`owner-${i}`) },
           ...(s.costBehavior ? { costBehavior: s.costBehavior } : {}), ...(s.necessity ? { necessity: s.necessity } : {}),
-          categorization: { origin: kind === 'MOVEMENT' && form.get(`effect-${i}`) === 'UNCLASSIFIED' ? 'UNCLASSIFIED' : 'USER', userLocked: true } })),
+          ...(s.categoryId !== undefined ? { categoryId: s.categoryId } : {}),
+          categorization: s.categorization })),
       } });
   }}>
     <h2>{correction ? 'תיקון תנועה' : 'תנועה חדשה'}</h2>

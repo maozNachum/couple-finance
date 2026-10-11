@@ -8,7 +8,7 @@ import { financialDateSchema, financialMonthSchema, utcTimestampSchema, monthlyR
 import { compareFinancialDates, monthOf, firstDayOfMonth, lastDayOfMonth, moveFinancialMonth, monthBoundaries, recurrenceDate } from '@finance/domain/dates/financial-date';
 import { ownershipSchema } from '@finance/contracts/ownership';
 import { accountSchema, balancePolicySchema } from '@finance/contracts/account';
-import { allocationSchema, reportingEffectSchema } from '@finance/contracts/allocation';
+import { allocationSchema, reportingEffectSchema, ruleCategorizationCandidateSchema } from '@finance/contracts/allocation';
 import { transactionSchema, transactionStatusSchema } from '@finance/contracts/transaction';
 import { sourceIdentitySchema, ingestionIdentitySchema, transactionProvenanceSchema } from '@finance/contracts/ingestion';
 import { accountIdSchema, householdIdSchema } from '@finance/contracts/identity';
@@ -46,6 +46,24 @@ function transaction(amount = '-10', effect = 'EXPENSE') {
   return { id, householdId: secondId, accountId: thirdId, transactionDate: '2024-02-29', money: { amount, currency: 'ILS' }, description: 'Synthetic movement', status: 'POSTED', provenance: [{ source }], allocations: [allocation(amount, effect)] };
 }
 const rawFx = { id, base: 'USD', quote: 'ILS', rate: '3.72', effectiveDate: '2024-02-29', recordedAt: '2024-03-01T12:00:00.123456Z', origin: source };
+
+test('category eligibility is explicit and never changes financial meaning', () => {
+  for (const effect of reportingEffectSchema.options) {
+    const value = allocationSchema.parse({ ...allocation('-10', effect), categorization: { origin: 'UNCLASSIFIED', userLocked: false } });
+    const before = JSON.stringify(value);
+    const candidate = ruleCategorizationCandidateSchema.safeParse(value);
+    equal(candidate.success, effect === 'EXPENSE' || effect === 'INCOME');
+    equal(JSON.stringify(value), before);
+    if (candidate.success) equal(candidate.data, value);
+  }
+});
+test('explicit user category can be locked without changing financial fields', () => {
+  const value = allocationSchema.parse({ ...allocation('-10', 'EXPENSE'), categoryId: secondId });
+  equal(value.categorization, { origin: 'USER', userLocked: true });
+  equal(value.categoryId, secondId);
+  equal(ruleCategorizationCandidateSchema.safeParse(value).success, false);
+  equal(value.effect, 'EXPENSE'); equal(value.money.amount, '-10');
+});
 
 const observedRecord = accountRecordSchema.parse({ account: { ...account, balancePolicy: 'OBSERVED' }, version: 1, manualSourceId: thirdId, sources: [{ id: thirdId, householdId: secondId, accountId: id, kind: 'MANUAL', authoritativeFrom: '0001-01-01' }] });
 const observation = observationSchema.parse({ id, householdId: secondId, accountId: id, sourceId: thirdId, date, money: money('-10.125'), coverage: 'COMPLETE', supersedesId: null, note: '', fx: null, recordedAt: '2024-03-01T00:00:00Z' });

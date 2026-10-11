@@ -2,6 +2,8 @@ import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import { createFixture } from '../integration/local-fixtures.mjs';
 import { localSql, uuid } from '../../scripts/local-supabase.mjs';
+import { manualTransactionCommandSchema } from '../../supabase/functions/_shared/core/contracts/ledger.ts';
+import type { ManualTransactionCommand } from '../../supabase/functions/_shared/core/contracts/ledger.ts';
 
 test.use({ actionTimeout: 10_000 });
 
@@ -9,6 +11,10 @@ test('manual ledger, split meaning, correction, uncertain retry and revoked acce
   // This story includes multiple committed revisions and a deliberately lost HTTP response.
   test.setTimeout(90_000);
   const fixture = await createFixture();
+  const commands: ManualTransactionCommand[] = [];
+  page.on('request', (request) => {
+    if (request.url().endsWith('/rest/v1/rpc/record_transaction')) commands.push(manualTransactionCommandSchema.parse(request.postDataJSON().payload));
+  });
   try {
     const user = fixture.users[0]; if (!user) throw new Error('Missing synthetic fixture');
     await page.goto(`/auth/confirm#token_hash=${user.hash}&type=invite`);
@@ -85,6 +91,25 @@ test('manual ledger, split meaning, correction, uncertain retry and revoked acce
     await form.getByRole('combobox', { name: 'מצב', exact: true }).selectOption('POSTED');
     await form.getByLabel('סיבת התיקון / הערה').fill('Synthetic posted');
     await form.getByRole('button', { name: 'שמירת תנועה' }).click();
+    await expect(page.getByText('יתרה מחושבת:')).toContainText('80.00 ILS');
+    for (const effect of ['UNCLASSIFIED', 'INCOME']) {
+      await form.getByLabel('תאריך התנועה').fill('2026-10-04');
+      await form.getByLabel('תיאור', { exact: true }).fill(`Synthetic ${effect}`);
+      await form.getByLabel('סכום התנועה ב־ILS').fill('0');
+      await form.getByLabel('סכום חלוקה 1').fill('0');
+      if (effect === 'INCOME') await form.getByLabel('משמעות חלוקה 1').selectOption(effect);
+      await form.getByRole('button', { name: 'שמירת תנועה' }).click();
+      await expect(page.getByRole('heading', { name: `Synthetic ${effect}`, exact: true })).toBeVisible();
+    }
+    expect(commands.flatMap((c) => c.transaction.allocations.map((a) => a.effect))).toEqual(expect.arrayContaining(['ADJUSTMENT', 'DEBT_PRINCIPAL', 'EXPENSE', 'TRANSFER', 'UNCLASSIFIED', 'INCOME']));
+    for (const command of commands) {
+      for (const allocation of command.transaction.allocations) {
+        expect(allocation).not.toHaveProperty('categoryId');
+        expect(allocation.categorization).toEqual({ origin: 'UNCLASSIFIED', userLocked: false });
+      }
+      const stored = JSON.parse(localSql(`select jsonb_agg(payload order by ordinal) from finance.transaction_allocations where revision_id='${uuid(command.revisionId)}';`));
+      expect(stored).toEqual(command.transaction.allocations);
+    }
     await expect(page.getByText('יתרה מחושבת:')).toContainText('80.00 ILS');
     expect(await page.evaluate(() => document.documentElement.dir)).toBe('rtl');
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
