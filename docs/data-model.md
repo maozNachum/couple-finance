@@ -43,3 +43,9 @@ Identity: profiles, households, household_members, currencies. Accounts: institu
 Later features add investment_account_details, instruments, portfolio_snapshots, holding_snapshots, goals, goal_allocations, goal_contributions, report_snapshots and notifications only when used. Do not implement these early.
 
 Financial records are archived, superseded or reversed with traceability. Audited corrections and immutable observations/reports avoid full event sourcing. Derived summaries are calculated; retained monthly reports freeze inputs, FX references and calculation version for reproducibility.
+
+## Task 6 categories and decisions
+
+Household categories have stable IDs, immutable EXPENSE/INCOME kind, Hebrew names, positive versions and ACTIVE/ARCHIVED status. There is no category tree. Rules carry explicit effect, literal description operator/pattern, normalization version, numeric priority and ACTIVE/DISABLED/ARCHIVED state. Current definition heads have retained immutable version snapshots. Household/category and household/rule-version composite references prevent foreign attribution; archives retain all references.
+
+Categorization decisions append full financial revisions while preserving all financial fields and stable transaction/allocation IDs. Evidence retains the category name/version, rule definition/version, ordered matches, algorithm and catalog generation. Financial corrections preserve category metadata on retained IDs; clearing a category requires a category command before removing a categorized allocation. Unknown effects remain UNCLASSIFIED. No migration rewrites historical category locks or financial bodies. See [precedence and history policy](task-6-decisions.md).

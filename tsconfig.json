@@ -90,6 +90,12 @@
       ],
       "@finance/domain/money/ledger": [
         "./supabase/functions/_shared/core/domain/money/ledger.ts"
+      ],
+      "@finance/contracts/categorization": [
+        "./supabase/functions/_shared/core/contracts/categorization.ts"
+      ],
+      "@finance/domain/categorization": [
+        "./supabase/functions/_shared/core/domain/categorization.ts"
       ]
     }
   },
