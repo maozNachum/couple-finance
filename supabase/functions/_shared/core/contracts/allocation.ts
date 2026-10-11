@@ -21,3 +21,8 @@ export const allocationSchema = z.strictObject({
   }).readonly(),
 }).readonly();
 export type Allocation = z.infer<typeof allocationSchema>;
+
+// Eligibility only: this contract never applies rules or changes financial fields.
+// Opening balances are ADJUSTMENT, so remain excluded without category locks.
+export const ruleCategorizationCandidateSchema = allocationSchema.refine((a) =>
+  !a.categorization.userLocked && (a.effect === 'EXPENSE' || a.effect === 'INCOME'));

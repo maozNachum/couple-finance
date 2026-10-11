@@ -6,6 +6,8 @@ Task 4 review fixes add RLS-protected `account_sources` and immutable household-
 
 ## Authorization requirements
 
+Task 5 uses invoker reads/RPC wrappers and a private `record_transaction` definer with an empty search path, no dynamic SQL and explicit live-session/household/context checks. Clients have SELECT only on transaction tables; no direct financial history INSERT/UPDATE/DELETE. Per-account locks serialize commands with archival. Expected version/predecessor checks, scoped SHA-256 receipts and audit writes commit atomically with allocations. Replay still requires current authorization. Private audit excludes descriptions, amounts and raw command bodies. See [Task 5 decisions](task-5-decisions.md) for the exact replay and correction policy.
+
 - Supabase Auth with invited users; no public enrollment initially. Production authentication should include tested recovery and MFA.
 - Household membership is database-backed. Never authorize from names, frontend state, or editable user metadata.
 - Login deletion/unlinking preserves durable membership history and its display snapshot while atomically revoking access. NULL user associations cannot be ACTIVE, reassigned or implicitly reclaimed. Clients have no member INSERT/UPDATE/DELETE grants. Households cannot cascade-delete membership history; future financial FKs must preserve that retention boundary.

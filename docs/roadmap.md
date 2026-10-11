@@ -8,7 +8,7 @@ Implement one bounded task per conversation. Each task must leave a working stat
 | 2 — complete | Money/date primitives and canonical contracts, no financial features | core/domain/money, core/domain/dates, core/contracts, portable/runtime tests |
 | 3 — complete | Auth, local Supabase, households, RLS and grants | auth/household features, migrations, supabase/tests |
 | 4 — complete | Accounts and dated valuations | accounts feature/core, atomic SQL commands |
-| 5 | Transactions, allocations, cash ledger and safe commands | transactions and persistence |
+| 5 — implemented, awaiting review | Transactions, allocations, cash ledger and safe commands | transactions and persistence |
 | 6 | Categories and deterministic rules | categorization |
 | 7 | CSV mapping, upload isolation and preview | imports and CSV adapter |
 | 8 | Idempotent import commit and duplicate review | ingestion |

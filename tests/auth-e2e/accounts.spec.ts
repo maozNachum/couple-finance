@@ -51,7 +51,7 @@ test('manual account, dated FX, correction, archival and revoked access', async 
     await form.getByLabel('שם החשבון').fill('Synthetic cash');
     await form.getByLabel('סוג חשבון').selectOption('CASH');
     await form.getByRole('button', { name: 'יצירת חשבון' }).click();
-    await expect(page.getByText('יתרה אינה זמינה: ספר התנועות יתווסף בשלב הבא.')).toBeVisible();
+    await expect(page.getByText('יתרה לא ידועה — אין יתרת פתיחה פעילה לתאריך שנבחר.')).toBeVisible();
     localSql(`update finance.household_members set status='REVOKED' where household_id='${uuid(fixture.households[0]!)}' and user_id='${uuid(user.id)}';`);
     await page.evaluate(() => window.dispatchEvent(new Event('focus')));
     await expect(page.getByText('אין כרגע גישה לבית.')).toBeVisible();

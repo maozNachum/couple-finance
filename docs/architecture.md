@@ -1,6 +1,6 @@
 # Architecture and placement
 
-Status: approved design; Tasks 1–4 implemented locally. Use a modular monolith, one React/Vite client and one Supabase backend. Canonical primitives/contracts, invited-user identity and manual accounts/dated observations exist; transactions and other financial features remain later work.
+Status: approved design; Tasks 1–5 implemented locally. Use a modular monolith, one React/Vite client and one Supabase backend. Canonical primitives/contracts, invited-user identity, manual accounts/dated observations and manual transactions/ledger exist. Reporting and ingestion remain later work.
 
 ## Dependency ownership
 
@@ -45,6 +45,8 @@ One shared corpus tests the exact aliases through Vitest/jsdom, Deno (cached-onl
 See [portable contracts](portable-contracts.md) for numeric bounds, error behavior, signs, ownership and historical FX semantics. Task 2 added no application service, persistence, provider, reconciliation, reporting feature or runtime clock. Task 3 adds local identity persistence only; see [decisions](task-3-decisions.md) and [auth boundaries](local-auth.md).
 
 ## Names and tests
+
+Task 5 adds exact `contracts/ledger` and `domain/money/ledger` aliases. The original Transaction and Allocation schemas remain canonical; the new envelope adds command identity and immutable revision metadata. Pure core validates history and computes LEDGER amounts using the existing decimal wrapper. The transactions feature owns input/read orchestration; accounts reuse the core balance without importing feature internals. Invoker snapshots read accounts, observations and revisions coherently. A narrowly scoped private definer command is the only new write path, allowing table write privileges to remain revoked. See [Task 5 decisions](task-5-decisions.md).
 
 Task 4's bounded accounts feature uses core/contracts/valuation and core/domain/money/valuation through exact reviewed aliases. Pure as-of selection/FX calls remain in core. Atomic persistence and authorization use curated SQL invoker commands; no unused TypeScript application service is introduced. A single invoker snapshot reads coherent account/observation history without the Data API row cap. See [Task 4 decisions](task-4-decisions.md).
 

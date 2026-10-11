@@ -31,6 +31,8 @@
     "@finance/domain/dates/financial-date": "../../supabase/functions/_shared/core/domain/dates/financial-date.ts",
     "@finance/contracts/household": "../../supabase/functions/_shared/core/contracts/household.ts",
     "@finance/contracts/valuation": "../../supabase/functions/_shared/core/contracts/valuation.ts",
-    "@finance/domain/money/valuation": "../../supabase/functions/_shared/core/domain/money/valuation.ts"
+    "@finance/domain/money/valuation": "../../supabase/functions/_shared/core/domain/money/valuation.ts",
+    "@finance/contracts/ledger": "../../supabase/functions/_shared/core/contracts/ledger.ts",
+    "@finance/domain/money/ledger": "../../supabase/functions/_shared/core/domain/money/ledger.ts"
   }
 }

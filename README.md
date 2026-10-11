@@ -1,6 +1,6 @@
 # Couple Finance
 
-Private household finance application for Maoz and Shachar. **Tasks 1–4:** a Hebrew RTL shell, canonical financial contracts, local invitation-only authentication with household isolation, and manual accounts with dated observations. LEDGER balances await Task 5; no transaction ingestion, reporting, live providers, deployment or AI is implemented.
+Private household finance application for Maoz and Shachar. **Tasks 1–5:** a Hebrew RTL shell, canonical financial contracts, local invitation-only authentication with household isolation, manual accounts with dated observations, and manual transactions with allocations and dated LEDGER balances. No transaction ingestion, reporting, live providers, deployment or AI is implemented.
 
 ## Run locally
 
@@ -11,7 +11,7 @@ npm ci
 npm run dev
 ```
 
-Open http://127.0.0.1:5173. Routes include `/`, `/about`, `/sign-in`, `/auth/confirm`, `/household` and `/accounts`, plus an unknown-route fallback. Authenticated routes need the local stack/configuration. The site contains no mock balances. Public configuration guidance is in `.env.example`.
+Open http://127.0.0.1:5173. Routes include `/`, `/about`, `/sign-in`, `/auth/confirm`, `/household`, `/accounts` and `/transactions`, plus an unknown-route fallback. Authenticated routes need the local stack/configuration. The site contains no mock balances. Public configuration guidance is in `.env.example`.
 
 ## Verify
 
@@ -35,6 +35,7 @@ Individual commands:
 | `npm run build` | Guarded production browser build plus isolated test-only core browser bundle |
 | `npm run test:e2e` | Built-site desktop/mobile, keyboard, accessibility, route and overflow tests |
 | `npm run test:accounts` | Real account API isolation, precision, concurrent commands and complete snapshot tests |
+| `npm run test:transactions` | Real transaction API retries, conflicting corrections, exact allocations, history and authorization |
 | `npm run preview` | Preview the most recent production build |
 
 `test:e2e` expects a current `dist/` and `.artifacts/core-probe/`; `verify` builds both first. The probe never enters the app distribution. Browser tests own port 4173 and do not reuse an unknown running server. Shell screenshots/traces are local ignored artifacts under `test-results/`; authenticated browser tests disable capture. The full verification also runs PostgreSQL RLS tests, SQL lint/security advisors, real Auth/API tests and authenticated desktop/mobile checks. One financial test corpus runs in Vitest, Deno, and Chromium with UTC, Jerusalem, Los Angeles, and Kiritimati timezones.
@@ -50,6 +51,8 @@ This is a local foundation, not a deployed financial application. See [Task 2 co
 Task 4 adds manual account management and immutable dated observations; see [decisions](docs/task-4-decisions.md), [delivery report](docs/task-4-report.md) and the [recommended Task 5 prompt](docs/task-5-prompt.md). Account history is corrected by supersession, never by editing a current balance.
 
 The [Task 4 architecture review fixes](docs/task-4-review-fixes.md) separate source relationships from accounts, define dated source authority and preserve reusable historical FX evidence independently of future reporting-date valuation.
+
+Task 5 adds immutable transaction revisions, atomic allocations/receipts/audit and pure dated ledger calculation. See [decisions](docs/task-5-decisions.md), [delivery report](docs/task-5-report.md) and the [recommended Task 6 prompt](docs/task-6-prompt.md). All development/test data is synthetic; no production deployment or financial execution exists.
 
 ## Git workflow for future tasks
 

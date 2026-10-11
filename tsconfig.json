@@ -84,6 +84,12 @@
       ],
       "@finance/domain/money/valuation": [
         "./supabase/functions/_shared/core/domain/money/valuation.ts"
+      ],
+      "@finance/contracts/ledger": [
+        "./supabase/functions/_shared/core/contracts/ledger.ts"
+      ],
+      "@finance/domain/money/ledger": [
+        "./supabase/functions/_shared/core/domain/money/ledger.ts"
       ]
     }
   },
