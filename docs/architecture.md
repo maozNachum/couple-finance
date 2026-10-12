@@ -1,5 +1,7 @@
 # Architecture and placement
 
+Task 8 extends ingestion preview with an explicit import review/commit Edge endpoint. CSV parsing stays in the reviewed provider; authorization, candidate search, atomic financial writes and receipts stay in curated SQL commands. The internal Task 6 writer now accepts authorized internal FILE_IMPORT creation, while manual commands cannot fabricate imports. Stored revision/ledger readers accept retained account FILE_IMPORT relationships; manual corrections and category commands preserve original provenance. See [Task 8 decisions](task-8-decisions.md).
+
 Status: approved design; Tasks 1–5 implemented locally. Use a modular monolith, one React/Vite client and one Supabase backend. Canonical primitives/contracts, invited-user identity, manual accounts/dated observations and manual transactions/ledger exist. Reporting and ingestion remain later work.
 
 ## Dependency ownership

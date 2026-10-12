@@ -10,8 +10,8 @@ Implement one bounded task per conversation. Each task must leave a working stat
 | 4 — complete | Accounts and dated valuations | accounts feature/core, atomic SQL commands |
 | 5 — complete | Transactions, allocations, cash ledger and safe commands | transactions and persistence |
 | 6 — complete | Categories and deterministic rules | categorization |
-| 7 — implemented, awaiting review | CSV mapping, upload isolation and preview | imports and CSV adapter |
-| 8 | Idempotent import commit and duplicate review | ingestion |
+| 7 — complete, merged | CSV mapping, upload isolation and preview | imports and CSV adapter |
+| 8 — implemented, awaiting review | Idempotent import commit and duplicate review | ingestion |
 | 9 | Transfer/card/loan reconciliation | transaction reconciliation |
 | 10 | Dashboard and net worth | dashboard/reporting/core |
 | 11 | Monthly budgets | budgets/budgeting |
@@ -37,4 +37,4 @@ Task 4 delivery is in [its report](task-4-report.md). LEDGER account identity ex
 
 Task 6 delivery is documented in [its report](task-6-report.md). Task 7 remains a separately authorized CSV mapping/private upload/preview task after review and merge; [prepared prompt](task-7-prompt.md). No ingestion commit is implemented in Task 6.
 
-Task 6 / PR #4 was reviewed and merged. Task 7 delivery is in [its report](task-7-report.md); it ends at bounded private CSV mapping/preview. [Task 8](task-8-prompt.md) requires separate authorization after Task 7 independent review and merge. No Task 8 import commit exists here.
+Task 6 / PR #4 and Task 7 / PR #5 were reviewed and merged. Task 7 delivery is in [its report](task-7-report.md). Task 8 extends its private CSV workflow with explicit atomic commit, duplicate review and retained provenance; see [delivery](task-8-report.md). [Task 9](task-9-prompt.md) remains a separately authorized reconciliation task after independent Task 8 review and merge.

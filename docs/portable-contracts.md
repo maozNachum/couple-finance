@@ -1,5 +1,7 @@
 # Portable financial contracts — Task 2
 
+Task 8 adds exact `contracts/import-commit`: strict review/commit requests, per-row inclusion/effect/status/duplicate acknowledgement, versioned preview and hash evidence, deterministic duplicate reasons and committed references. Selected batches are 1–100 rows; decisions are unique and bounded to all 2,000 source rows. No browser row/amount/context override field exists. Stored revision validation now accepts FILE_IMPORT MOVEMENT provenance with an ingestion item; manual creation stays MANUAL, corrections retain provenance. Ledger validation checks account source relationships and rejects source changes across revisions. Earlier MANUAL history is unchanged.
+
 Canonical schemas live under `supabase/functions/_shared/core/contracts`; pure operations live under `core/domain/money` and `core/domain/dates`. Use exact aliases from `scripts/architecture-policy.json`. There are no second frontend/backend schemas. Types are inferred from Zod; parse unknown inputs at boundaries. UUID/date/decimal brands are compile-time safeguards, not security claims. Strict objects reject additional fields.
 
 ## Decimal and Money

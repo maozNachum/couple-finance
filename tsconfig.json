@@ -99,6 +99,9 @@
       ],
       "@finance/contracts/import-preview": [
         "./supabase/functions/_shared/core/contracts/import-preview.ts"
+      ],
+      "@finance/contracts/import-commit": [
+        "./supabase/functions/_shared/core/contracts/import-commit.ts"
       ]
     }
   },

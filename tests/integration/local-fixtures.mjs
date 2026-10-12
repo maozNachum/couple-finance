@@ -24,6 +24,9 @@ export async function createFixture() {
       for (const user of users) await admin.auth.admin.deleteUser(user.id);
       // Explicit deletion is limited to this fixture's generated synthetic households.
       localSql(`begin;
+        delete from private.import_receipts where household_id in ('${households[0]}','${households[1]}');
+        delete from finance.import_rows where household_id in ('${households[0]}','${households[1]}');
+        delete from finance.import_jobs where household_id in ('${households[0]}','${households[1]}');
         delete from finance.categorization_decisions where household_id in ('${households[0]}','${households[1]}');
         delete from private.categorization_receipts where household_id in ('${households[0]}','${households[1]}');
         delete from private.transaction_receipts where household_id in ('${households[0]}','${households[1]}');
@@ -33,6 +36,7 @@ export async function createFixture() {
         delete from finance.transactions where household_id in ('${households[0]}','${households[1]}');
         delete from finance.balance_observations where household_id in ('${households[0]}','${households[1]}');
         delete from finance.fx_evidence where household_id in ('${households[0]}','${households[1]}');
+        delete from private.import_source_bindings where household_id in ('${households[0]}','${households[1]}');
         delete from finance.account_sources where household_id in ('${households[0]}','${households[1]}');
         delete from finance.accounts where household_id in ('${households[0]}','${households[1]}');
         delete from finance.rule_versions where household_id in ('${households[0]}','${households[1]}');

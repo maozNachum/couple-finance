@@ -16,6 +16,17 @@ function corrected(old: TransactionRevision, amount: string, status = 'POSTED', 
   return transactionRevisionSchema.parse({ ...old, version: old.version + 1, revisionId: id(900 + old.version), supersedesRevisionId: old.revisionId, openingCoverage: coverage, reason: 'Synthetic correction', recordedAt: '2026-10-10T00:00:00.000000Z', transaction: { ...old.transaction, status, money: { amount, currency: 'ILS' }, allocations: old.transaction.allocations.map((a) => ({ ...a, money: { amount, currency: 'ILS' } })) } });
 }
 const opening = revision(1, '100', { opening: true });
+test('FILE_IMPORT revisions use account relationships and exact ledger while manual creation stays restricted',()=>{
+ const fileRecord=accountRecordSchema.parse({...record,sources:[...record.sources,{id:id(4),householdId:id(2),accountId:id(1),kind:'FILE_IMPORT',authoritativeFrom:null}]});
+ const imported=transactionRevisionSchema.parse({...revision(2,'-0.12345678'),transaction:{...revision(2,'-0.12345678').transaction,provenance:[{source:{sourceId:id(4),kind:'FILE_IMPORT'},ingestionItemId:id(5)}]}});
+ const result=ledgerBalance(fileRecord,[opening,imported],'2026-10-05');equal(result.state,'KNOWN');if(result.state==='KNOWN')equal(result.money.amount,'99.87654322');
+ equal(ledgerBalance(record,[opening,imported],'2026-10-05').state,'ERROR');
+ equal(ledgerBalance(fileRecord,[imported],'2026-10-05').state,'UNKNOWN');
+ equal(manualTransactionCommandSchema.safeParse({...imported,idempotencyKey:'synthetic_import_01',expectedVersion:0,version:undefined,createdAt:undefined,recordedAt:undefined}).success,false);
+ const next=corrected(imported,'-2');equal(currentTransactions(fileRecord,[imported,next]).length,1);
+ const forged=transactionRevisionSchema.parse({...next,transaction:{...next.transaction,provenance:[{source:{sourceId:id(3),kind:'MANUAL'}}]}});
+ equal(ledgerBalance(fileRecord,[opening,imported,forged],'2026-10-05').state,'ERROR');
+});
 const balance = (history: readonly TransactionRevision[], date = '2026-10-05') => ledgerBalance(record, history, date);
 function amount(history: readonly TransactionRevision[], date?: string) { const result = balance(history, date); if (result.state !== 'KNOWN' && result.state !== 'INCOMPLETE') throw new Error('Expected balance'); return result.money.amount; }
 test('missing opening is unknown, even with posted activity', () => { equal(balance([]).state, 'UNKNOWN'); equal(balance([revision(2, '10')]).state, 'UNKNOWN'); });

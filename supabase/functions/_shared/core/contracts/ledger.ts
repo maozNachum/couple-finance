@@ -15,7 +15,7 @@ const fields = {
 function validManual(v: { transaction: z.infer<typeof transactionSchema>; entryKind: string; openingCoverage: string | null; supersedesRevisionId: string | null; revisionId: string; reason: string }) {
   const t = v.transaction;
   return t.merchant === undefined && t.provenance.length === 1 &&
-    t.provenance.every((p) => p.source.kind === 'MANUAL' && p.externalTransactionId === undefined && p.ingestionItemId === undefined) &&
+    t.provenance.every((p) => (p.source.kind === 'MANUAL' ? p.externalTransactionId === undefined && p.ingestionItemId === undefined : p.source.kind === 'FILE_IMPORT' && p.ingestionItemId !== undefined && v.entryKind === 'MOVEMENT')) &&
     t.allocations.every((a) => ['USER', 'RULE', 'UNCLASSIFIED'].includes(a.categorization.origin)) &&
     (v.entryKind === 'OPENING' ? v.openingCoverage !== null && t.status !== 'PENDING' && t.allocations.every((a) => a.effect === 'ADJUSTMENT') : v.openingCoverage === null) &&
     (v.supersedesRevisionId === null || (v.supersedesRevisionId !== v.revisionId && v.reason.length > 0));
@@ -23,7 +23,7 @@ function validManual(v: { transaction: z.infer<typeof transactionSchema>; entryK
 export const manualTransactionCommandSchema = z.strictObject({
   ...fields, idempotencyKey: idempotencyKeySchema,
   expectedVersion: z.number().int().min(0).max(2147483646),
-}).refine(validManual).refine((v) => v.expectedVersion > 0 || v.transaction.allocations.every((a) => a.categoryId === undefined && ['USER', 'UNCLASSIFIED'].includes(a.categorization.origin))).refine((v) => (v.expectedVersion === 0) === (v.supersedesRevisionId === null)).readonly();
+}).refine(validManual).refine(v=>v.expectedVersion > 0 || v.transaction.provenance.every(p=>p.source.kind==='MANUAL')).refine((v) => v.expectedVersion > 0 || v.transaction.allocations.every((a) => a.categoryId === undefined && ['USER', 'UNCLASSIFIED'].includes(a.categorization.origin))).refine((v) => (v.expectedVersion === 0) === (v.supersedesRevisionId === null)).readonly();
 export const transactionRevisionSchema = z.strictObject({
   ...fields, version: z.number().int().positive().max(2147483647),
   createdAt: utcTimestampSchema, recordedAt: utcTimestampSchema,

@@ -57,3 +57,5 @@ content_path = "./supabase/templates/magic-link.html"
 
 [functions.import-preview]
 verify_jwt = true
+[functions.import-commit]
+verify_jwt = true

@@ -1,5 +1,7 @@
 # Financial model
 
+Task 8 adds durable `import_jobs` and immutable accepted `import_rows`, independent of temporary upload deletion. Jobs retain byte/interpretation hashes, versioned adapter/options, row counts and durable uploader/committer members. Accepted rows retain logical/physical coordinates, source reference and original description, decision and canonical transaction/revision/item references. Financial data stays in existing canonical revision/allocation history. A lazily authorized FILE_IMPORT relationship keeps the selected account and manual source identities, with NULL authority; no observation or FX evidence changes. Private leases/receipts remain unexposed. See [Task 8 decisions](task-8-decisions.md).
+
 Task 2 implements [canonical contracts and pure primitives](portable-contracts.md). Task 3 adds profiles, households and durable household_members. Task 4 adds accounts and immutable balance_observations. Task 5 adds stable transactions, immutable revisions, relational allocations and dated ledger calculation; reporting totals remain later work. See [Task 4 decisions](task-4-decisions.md) and [Task 5 decisions](task-5-decisions.md).
 
 ## Invariants

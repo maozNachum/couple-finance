@@ -18,7 +18,7 @@ export function TransactionForm({ record, correction, members, disabled, submit 
       entryKind: kind, openingCoverage: kind === 'OPENING' ? form.get('coverage') : null, reason: form.get('reason') ?? '',
       transaction: { id: identity.transaction, householdId: account.householdId, accountId: account.id, transactionDate: correction?.transaction.transactionDate ?? form.get('date'),
         ...(correction?.transaction.valueDate ? { valueDate: correction.transaction.valueDate } : {}),
-        description: form.get('description'), money: { amount: form.get('amount'), currency: account.currency }, status: form.get('status'), provenance: [{ source: { sourceId: record.manualSourceId, kind: 'MANUAL' } }],
+        description: form.get('description'), money: { amount: form.get('amount'), currency: account.currency }, status: form.get('status'), provenance: correction?.transaction.provenance ?? [{ source: { sourceId: record.manualSourceId, kind: 'MANUAL' } }],
         allocations: splits.map((s, i) => ({ id: s.id, money: { amount: form.get(`split-${i}`), currency: account.currency }, effect: kind === 'OPENING' ? 'ADJUSTMENT' : form.get(`effect-${i}`),
           ownership: form.get(`owner-${i}`) === 'HOUSEHOLD' ? { kind: 'HOUSEHOLD' } : { kind: 'MEMBER', memberId: form.get(`owner-${i}`) },
           ...(s.costBehavior ? { costBehavior: s.costBehavior } : {}), ...(s.necessity ? { necessity: s.necessity } : {}),

@@ -28,7 +28,7 @@ export function currentTransactions(record: AccountRecord, input: readonly Trans
   if (byId.size !== history.length) throw new RangeError('Duplicate revision');
   for (const r of history) {
     const t = r.transaction;
-    if (t.accountId !== account.id || t.householdId !== account.householdId || t.money.currency !== account.currency || t.provenance[0]?.source.sourceId !== record.manualSourceId) throw new RangeError('Invalid context');
+    if (t.accountId !== account.id || t.householdId !== account.householdId || t.money.currency !== account.currency || !record.sources.some(s=>s.id===t.provenance[0]?.source.sourceId && s.kind===t.provenance[0]?.source.kind)) throw new RangeError('Invalid context');
     if (r.supersedesRevisionId === null) {
       if (roots.has(t.id)) throw new RangeError('Duplicate identity');
       roots.add(t.id);
@@ -36,7 +36,7 @@ export function currentTransactions(record: AccountRecord, input: readonly Trans
     } else {
       const old = byId.get(r.supersedesRevisionId);
       if (!old || successors.has(old.revisionId) || old.transaction.id !== t.id || old.version + 1 !== r.version ||
-        old.entryKind !== r.entryKind || old.transaction.transactionDate !== t.transactionDate ||
+        JSON.stringify(old.transaction.provenance) !== JSON.stringify(t.provenance) || old.entryKind !== r.entryKind || old.transaction.transactionDate !== t.transactionDate ||
         old.transaction.valueDate !== t.valueDate || old.createdAt !== r.createdAt || timestampOrder(old.recordedAt) > timestampOrder(r.recordedAt) ||
         (old.transaction.status === 'VOIDED' && old.entryKind !== 'OPENING') || (old.transaction.status === 'POSTED' && t.status === 'PENDING')) throw new RangeError('Invalid revision chain');
       successors.add(old.revisionId);

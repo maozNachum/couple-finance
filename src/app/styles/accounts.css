@@ -15,3 +15,8 @@
 
 .categorization-panel fieldset { display: grid; gap: 1rem; min-inline-size: 0; border: 1px solid #ccd6ce; border-radius: .5rem; padding: 1rem; }
 .categorization-panel li { margin-block: .5rem; overflow-wrap: anywhere; }
+
+.import-fingerprint, .observation-history bdi { overflow-wrap: anywhere; }
+
+.import-choice { display: flex; align-items: flex-start; gap: .5rem; }
+.import-choice input[type="checkbox"] { width: auto; flex: 0 0 auto; margin-block-start: .25rem; }
