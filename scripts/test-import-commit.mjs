@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { spawn } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
 import { createClient } from '@supabase/supabase-js';
 import { createFixture } from '../tests/integration/local-fixtures.mjs';
@@ -13,9 +14,9 @@ const mapping={date:0,description:1,amount:2,debit:null,credit:null,currency:nul
 const format={encoding:'UTF-8',delimiter:','};
 const csv='date,description,amount,ref\n2026-10-02,Synthetic repeat,-10.20,ref-1\n2026-10-02,Synthetic repeat,-10.20,ref-2\n2026-10-03,Synthetic positive,5,ref-3\n2026-02-31,invalid,1,bad\n,,,missing';
 async function rpc(c,name,payload){const r=await c.rpc(name,{payload});assert.equal(r.error,null,'RPC transport');return r.data;}
-async function upload(content=csv){
+async function upload(content=csv,sourceId=sid){
  const bytes=new TextEncoder().encode(content),id=randomUUID();
- const auth=await rpc(a,'import_command',{action:'AUTHORIZE',id,householdId:h,accountId:aid,sourceId:sid,filename:'synthetic.csv',bytes:bytes.length});eq(auth.ok,true,'authorize file');
+ const auth=await rpc(a,'import_command',{action:'AUTHORIZE',id,householdId:h,accountId:aid,sourceId,filename:'synthetic.csv',bytes:bytes.length});eq(auth.ok,true,'authorize file');
  eq((await a.storage.from('import-preview').upload(auth.upload.path,bytes,{contentType:'text/csv',upsert:false})).error,null,'immutable private bytes');return auth.upload;
 }
 async function edge(c,body){const r=await c.functions.invoke('import-commit',{body});if(r.error)throw new Error('Edge transport '+r.error.context?.status);return r.data;}
@@ -38,6 +39,11 @@ try{
  eq(r.preview.invalid,1,'invalid count');eq(r.preview.unresolved,1,'unresolved count');eq(count(),'0','review has no financial writes');
  eq(r.duplicates.find(d=>d.row===2).reasons.includes('REPEATED_IN_FILE'),true,'legitimate repeated values need review');
  eq(localSql(`select kind||':'||coalesce(authoritative_from::text,'NULL') from finance.account_sources where id='${uuid(r.sourceId)}'`),'FILE_IMPORT:NULL','distinct non-authoritative source');
+ const pinnedSource=r.sourceId,foreignFile='00000000-0000-4000-8000-000000000008';
+ localSql(`insert into finance.account_sources(id,household_id,account_id,kind,authoritative_from) values('${foreignFile}','${h}','${aid}','FILE_IMPORT',null)`);
+ eq((await review(u)).review.sourceId,pinnedSource,'additional lower UUID cannot redirect pinned source');
+ const mismatched=await upload(csv,foreignFile);eq((await review(mismatched)).error.code,'CONFLICT','explicit other FILE_IMPORT source cannot silently redirect');
+ const explicit=await upload(csv,pinnedSource);eq((await review(explicit)).review.sourceId,pinnedSource,'explicit pinned source accepted');
  eq(r.sourceId!==sid,true,'manual provenance not relabelled');eq(retained(),before,'observations/account untouched');
  const bad=decide(r,[5]);eq((await edge(a,bad)).error.code,'INVALID_INPUT','invalid row cannot persist');eq(count(),'0','invalid rollback');
  const unresolved=decide(r,[6]);eq((await edge(a,unresolved)).error.code,'INVALID_INPUT','unresolved row cannot persist');
@@ -58,6 +64,13 @@ try{
  eq((await edge(a,{...cmd,decisions:cmd.decisions.map(d=>({...d,effect:'EXPENSE'}))})).error.code,'CONFLICT','key changed complete decisions');
  eq((await edge(a,{...cmd,idempotencyKey:randomUUID()})).error.code,'CONFLICT','review cannot commit a second command');
  eq((await edge(a,cmd)).result,result,'lost response exact retry');
+ localSql(`update private.import_source_bindings set enabled=false where household_id='${h}' and account_id='${aid}'`);
+ eq((await review(u)).error.code,'CONFLICT','disabled binding blocks new preparation');eq((await edge(a,cmd)).result,result,'disabled source preserves authorized durable retry');
+ localSql(`update private.import_source_bindings set enabled=true where household_id='${h}' and account_id='${aid}'`);
+ const unicode=await upload('date,description,amount,ref\n2026-10-09,\u00a0Unicode trim\u00a0,3,unicode');const unicodeReview=(await review(unicode)).review;
+ eq((await edge(a,decide(unicodeReview,[2]))).ok,true,'canonical Unicode description accepted');
+ eq(localSql(`select body->>'description' from finance.transaction_revisions where household_id='${h}' and body->>'transactionDate'='2026-10-09'`),'Unicode trim','canonical JavaScript whitespace trim');
+ eq(localSql(`select source_description from finance.import_rows where household_id='${h}' and source_reference='unicode'`),'Unicode trim','adapter-interpreted source description preserved');
  r=(await review(u)).review;eq(r.duplicates.filter(d=>d.exact).length,3,'exact prior source rows distinguished');eq((await edge(a,decide(r,[2]))).error.code,'INVALID_INPUT','exact import cannot be accepted');
  const changedInterpretation=(await review(u,a,{...mapping,sign:'POSITIVE_DECREASES'})).review;eq(changedInterpretation.duplicates.find(d=>d.row===2).reasons.includes('INTERPRETATION_CHANGED'),true,'same file row different mapping cannot evade identity');
  const same=await upload(csv+'\n2026-10-04,Distinct,1,ref-4');let different=(await review(same)).review;
@@ -75,12 +88,28 @@ try{
  const batchCsv='date,description,amount,ref\n'+Array.from({length:101},(_,i)=>`2026-10-05,Unique ${i},${i+1},batch${i}`).join('\n');const batch=await upload(batchCsv),batchReview=(await review(batch)).review;
  eq((await edge(a,decide(batchReview,batchReview.preview.rows.map(row=>row.row)))).error.code,'INVALID_INPUT','bounded atomic batch');
  // A late failure must roll back transactions, rows and receipts together.
- localSql(`create function private.synthetic_import_failure() returns trigger language plpgsql as $$begin raise exception 'synthetic'; end$$; create trigger synthetic_import_failure before insert on finance.import_rows for each row execute function private.synthetic_import_failure();`);
- const rollbackCount=count(),rollbackCmd=decide(batchReview,[2]);
+ localSql(`create function private.synthetic_import_failure() returns trigger language plpgsql as $$begin raise exception 'synthetic'; end$$; create trigger synthetic_import_failure before insert on finance.import_rows for each row when (new.row_number=4) execute function private.synthetic_import_failure();`);
+ const rollbackCount=count(),rollbackCmd=decide(batchReview,[2,3,4]);
  try{eq((await edge(a,rollbackCmd)).ok,false,'late injected persistence failure');eq(count(),rollbackCount,'complete rollback');eq(localSql(`select count(*) from private.import_receipts where idempotency_key=${sqlText(rollbackCmd.idempotencyKey)}`),'0','failure has no receipt');}
  finally{localSql('drop trigger synthetic_import_failure on finance.import_rows; drop function private.synthetic_import_failure();');}
  eq((await edge(a,rollbackCmd)).ok,true,'same command recoverable after rollback');
  // Lease and cleanup protocol: cancellation loses to active lease, then wins after release.
+ // Finalization caches the token, then waits for the household lock. Release must win.
+ const raced=await upload('date,description,amount,ref\n2026-10-06,race,2,race');const racedLease=await rpc(a,'begin_import',{action:'REVIEW',id:raced.id});
+ const locker=spawn('docker',['exec','-i','supabase_db_couple-finance','psql','-U','postgres','-d','postgres','-At','-v','ON_ERROR_STOP=1'],{stdio:['pipe','pipe','pipe']});
+ const locked=new Promise((resolve,reject)=>{let output='';locker.stdout.on('data',data=>{output+=data.toString();if(output.includes('LOCKED'))resolve();});locker.on('error',reject);locker.on('exit',code=>{if(code!==0)reject(new Error('Synthetic lock fixture failed'));});});
+ const lockDone=new Promise((resolve,reject)=>{locker.on('exit',code=>code===0?resolve():reject(new Error('Synthetic lock fixture failed')));locker.on('error',reject);});
+ locker.stdin.end(`begin; select id from finance.households where id='${h}' for update;\n\\echo LOCKED\nselect pg_sleep(5); commit;\n`);
+ await locked;const finalizing=rpc(localAdmin().schema('api'),'finish_import',{leaseId:racedLease.leaseId});
+ let waiting=false;for(let attempt=0;attempt<20&&!waiting;attempt++){waiting=localSql("select exists(select 1 from pg_stat_activity where wait_event_type='Lock' and query like '%finish_import%')")==='t';if(!waiting)await new Promise(resolve=>setTimeout(resolve,50));}
+ eq(waiting,true,'finalization is actually waiting after reading its lease');await rpc(a,'release_import',{id:racedLease.leaseId});
+ eq((await finalizing).error.code,'NOT_AUTHORIZED','release wins against already-started waiting finalization');await lockDone;
+ const releasedUpload=await upload('date,description,amount,ref\n2026-10-06,released,2,released');const releasedLease=await rpc(a,'begin_import',{action:'REVIEW',id:releasedUpload.id});
+ await rpc(a,'release_import',{id:releasedLease.leaseId});
+ eq((await rpc(localAdmin().schema('api'),'finish_import',{leaseId:releasedLease.leaseId})).error.code,'NOT_AUTHORIZED','released lease cannot finalize');
+ const obsolete=await upload('date,description,amount,ref\n2026-10-08,obsolete,4,obsolete');const obsoleteReview=(await review(obsolete)).review;
+ localSql(`update finance.import_jobs set options=options-'version' where id='${uuid(obsoleteReview.id)}'`);
+ eq((await edge(a,decide(obsoleteReview,[2]))).error.code,'CONFLICT','obsolete interpretation options require new review');
  const leased=await upload('date,description,amount,ref\n2026-10-06,lease,2,lease');const lease=await rpc(a,'begin_import',{action:'REVIEW',id:leased.id});eq(lease.ok,true,'bounded lease');
  eq((await rpc(a,'import_command',{action:'CANCEL',id:leased.id})).error.code,'CONFLICT','cancel cannot race active parser');
  localSql(`update finance.import_uploads set expires_at=now()-interval '1 minute' where id='${uuid(leased.id)}'`);
@@ -88,7 +117,8 @@ try{
  eq((await rpc(a,'begin_import',{action:'REVIEW',id:leased.id})).error.code,'CONFLICT','expired cannot acquire new lease');
  const reserved=JSON.parse(localSql('select private.reserve_import_cleanup()'));eq(reserved.some(x=>x.id===leased.id),false,'cleanup excludes evidence with active lease');
  await rpc(a,'release_import',{id:lease.leaseId});eq((await review(leased)).error.code,'CONFLICT','expired upload cannot review');await cleanupImports();eq((await a.storage.from('import-preview').download(leased.path)).error!==null,true,'expired raw removed after lease');
- await rpc(a,'import_command',{action:'CANCEL',id:u.id});eq((await review(u)).error.code,'CONFLICT','cancelled upload blocks new review');await cleanupImports();eq((await edge(a,cmd)).result,result,'receipt recovery after raw and metadata deletion');eq((await b.rpc('import_evidence')).data,[],'durable evidence household isolation');
+ await rpc(a,'import_command',{action:'CANCEL',id:u.id});eq((await review(u)).error.code,'CONFLICT','cancelled upload blocks new review');await cleanupImports();eq((await edge(a,cmd)).result,result,'receipt recovery after raw and metadata deletion');
+ eq((await rpc(a,'import_command',{action:'AUTHORIZE',id:u.id,householdId:h,accountId:aid,sourceId:sid,filename:'reused.csv',bytes:7})).error.code,'CONFLICT','durable upload identity cannot be reused after cleanup');eq((await b.rpc('import_evidence')).data,[],'durable evidence household isolation');
  const revoke=await upload('date,description,amount,ref\n2026-10-07,revoke,1,revoke');const revokeReview=(await review(revoke)).review;
  localSql(`update finance.household_members set status='REVOKED' where household_id='${h}'`);eq((await edge(a,decide(revokeReview))).error.code,'NOT_AUTHORIZED','unchanged JWT revoked member');eq((await edge(a,cmd)).error.code,'NOT_AUTHORIZED','revoked cannot recover receipts');eq((await a.rpc('import_evidence')).data,[],'revoked evidence denied');
  localSql(`update finance.household_members set status='ACTIVE' where household_id='${h}'`);

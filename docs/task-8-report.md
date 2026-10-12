@@ -1,6 +1,6 @@
 # Task 8 delivery — Secure import commit, duplicate review and durable provenance
 
-Date: 2026-10-12. Scope: Task 8 only. Task 7 PR #5 was verified merged at `f95767844f34209fb4ca57b89cf8cbd01b140dec`; exact master push [CI run 38276792541](https://github.com/maozNachum/couple-finance/actions/runs/38276792541) succeeded before implementation. Remote master was fetched, local master fast-forwarded and `feature/task-8-import-commit-dedup` created. Applicable AGENTS.md, architecture/security/model/provider/portable/roadmap and Tasks 2–7 reports/decisions/review fixes were read. Read-only root instructions and synced sources are unchanged.
+Date: 2026-10-13 (readiness follow-up). Scope: Task 8 only. Task 7 PR #5 was verified merged at `f95767844f34209fb4ca57b89cf8cbd01b140dec`; exact master push [CI run 38276792541](https://github.com/maozNachum/couple-finance/actions/runs/38276792541) succeeded before implementation. Remote master was fetched, local master fast-forwarded and `feature/task-8-import-commit-dedup` created. Applicable AGENTS.md, architecture/security/model/provider/portable/roadmap and Tasks 2–7 reports/decisions/review fixes were read. Read-only root instructions and synced sources are unchanged.
 
 ## Delivered workflow
 
@@ -10,17 +10,17 @@ The confirmation/result identifies household, selected account, file fingerprint
 
 ## Server authorization and provenance
 
-`import-commit` uses the original reviewed `generic-csv-v1` adapter, not a new parser. It accepts only a review request or review-ID/decisions command, never browser rows, amounts, account/source/path/hash overrides. Current session and active membership are verified in the database; upload/account/source eligibility and immutable object size/path are checked. Original bytes are downloaded with the caller JWT and reparsed under complete stored options. Server SHA-256 binds exact bytes and the full interpreted preview, including row coordinates, issues and counts. Commit reparsing must match the review hash and version/options exactly.
+`import-commit` uses the original reviewed `generic-csv-v1` adapter, not a new parser. It accepts only a review request or review-ID/decisions command, never browser rows, amounts, account/source/path/hash overrides. Current session and active membership are verified in the database; upload/account/source eligibility and immutable object size/path are checked. Original bytes are downloaded with the caller JWT and reparsed under complete stored options (adapter plus explicit version 1, mapping and format). Server SHA-256 binds exact bytes and the full interpreted preview, including row coordinates, issues and counts. Commit reparsing must match the review hash and version/options exactly.
 
-An authorized non-authoritative FILE_IMPORT relationship is resolved under the existing account lock. MANUAL stays distinct; account ID, household/member ownership, dated authority, observations and FX evidence are preserved. No imported source is appointed as a balance authority. Generic CSV has no certified bank external ID semantics: references remain source-scoped evidence, not forced uniqueness constraints. LIVE_SYNC/unsupported source contexts cannot become file commits. The existing source schema has no independent enabled/disabled lifecycle; this task uses the eligible stored relationship rather than inventing provider consent state.
+An authorized non-authoritative FILE_IMPORT relationship is resolved under the existing account lock. MANUAL stays distinct; account ID, household/member ownership, dated authority, observations and FX evidence are preserved. No imported source is appointed as a balance authority. Generic CSV has no certified bank external ID semantics: references remain source-scoped evidence, not forced uniqueness constraints. LIVE_SYNC/unsupported source contexts cannot become file commits. A server-only account binding pins the exact generic CSV relationship, with an operator-controlled enabled flag. An explicitly selected FILE_IMPORT source must equal that binding. Disabled or authoritative relationships reject new work; existing authorized receipts remain recoverable. No provider consent workflow is introduced.
 
-Durable jobs retain byte/preview fingerprints, `generic-csv-v1` and exact mapping/format options, counts and uploader/committer durable member FKs. Immutable accepted rows retain logical row, physical line range, interpreted row digest, original source description/reference, explicit decision and transaction/revision/ingestion-item IDs. Canonical financial content stays in existing revisions/allocations. Supplementary cells and full raw CSV are not retained. Existing canonical description trimming remains; original source description is retained separately as evidence. Auth user/session deletion revokes access and preserves member attribution and accepted evidence.
+Durable jobs retain byte/preview fingerprints, `generic-csv-v1` and exact mapping/format options, counts and uploader/committer durable member FKs. Immutable accepted rows retain logical row, physical line range, interpreted row digest, adapter-interpreted source description/reference, explicit decision and transaction/revision/ingestion-item IDs. Canonical financial content stays in existing revisions/allocations. Supplementary cells and full raw CSV are not retained. Existing canonical description trimming remains; the adapter-interpreted source description is retained separately as evidence. Auth user/session deletion revokes access and preserves member attribution and accepted evidence.
 
 Temporary uploads remain removable after 24 hours/cancellation. Accepted jobs/rows/receipts have no cascading upload FK and survive raw deletion. Abandoned review metadata is removed when staging metadata is forgotten/cleaned. No permanent public or signed URLs are introduced.
 
 ## Duplicate rules and limitations
 
-Command idempotency and financial duplicate review are separate mechanisms. The two evidence categories are exact prior source identity and possible duplicate. Similarity is not expressed as probabilistic certainty.
+Command idempotency and financial duplicate review are separate mechanisms. The interface distinguishes exact prior source identity, strong similarity (same reference or financial values) and weak similarity (date/amount or in-file repetition). Similarity is not expressed as probabilistic certainty.
 
 | Evidence | Behavior |
 | --- | --- |
@@ -43,43 +43,43 @@ PostgreSQL derives SHA-256 over the normalized complete command and stored house
 
 The narrow server-only parser-result RPC is invoker-facing; its private fixed-search-path handler derives actor/session from the stored lease, never a caller-supplied actor. It checks live Auth/membership and holds SHARE locks on the actual user, session and active member while writing, ordering persistence with revocation/deletion. The existing Task 6 financial writer is reused internally. Its two-argument import capability is not executable by authenticated/service-role clients. Public financial creation remains MANUAL; authorized corrections/category commands preserve FILE_IMPORT provenance and historical category metadata. Stored readers/ledger validation recognize genuine account FILE_IMPORT relationships and retain unknown/incomplete opening semantics.
 
-Preparation/commit has a 45-second nonrenewable lease, at most eight simultaneous leases per upload and the existing 100 processing-check budget. New work rejects expired/cancelled/cleanup-reserved uploads and archived accounts. An acquired lease allows only its actor/session to read original evidence across the upload expiry boundary. Cancellation and forgetting return CONFLICT while a lease is active; once released/expired, cancellation wins and no new commit can start. Cleanup reserves eligible upload metadata under lock before using the privileged Storage API, so it cannot delete evidence needed by an active commit or allow a new lease during deletion. The Edge I/O deadline is 15 seconds; finalization declares a 20-second SQL timeout and verifies lease time before success, rolling back expired work. No lease is extended to resurrect cancellation.
+Preparation/commit has a 45-second nonrenewable lease, at most eight simultaneous leases per upload and the existing 100 processing-check budget. New work rejects expired/cancelled/cleanup-reserved uploads and archived accounts. An acquired lease allows only its actor/session to read original evidence across the upload expiry boundary. Cancellation and forgetting return CONFLICT while a lease is active; once released/expired, cancellation wins and no new commit can start. Finalization re-reads and locks the source-bound lease after acquiring the upload lock; release takes that same lock, so an already-started finalization cannot use a released cached token. Cleanup reserves eligible upload metadata under lock before using the privileged Storage API, so it cannot delete evidence needed by an active commit or allow a new lease during deletion. The Edge I/O deadline is 15 seconds; finalization declares a 20-second SQL timeout and verifies lease time before success, rolling back expired work. No lease is extended to resurrect cancellation.
 
 ## Security and compatibility
 
-One forward migration is CLI-created: `20261012180706_task8_import_commit.sql`. All six merged migrations are unchanged. RLS, household-scoped restrictive source/account/member/transaction/revision/job FKs, invoker APIs and least privileges apply to evidence. Private leases/receipts/audit and finance remain unexposed. Duplicate searches are explicitly household/account/source-scoped; no foreign financial records/hashes/receipts are returned. Audit contains context/action/actor/time, not financial descriptions, amounts, raw bodies or credentials. Financial revisions/provenance cannot be directly mutated by browser roles.
+Two forward migrations are CLI-created: `20261012180706_task8_import_commit.sql` and `20261012204927_task8_review_hardening.sql`. All six merged migrations and the previously committed Task 8 migration are unchanged. The hardening migration backfills only unambiguous job source identities and refuses an upgrade during active leases or conflicting source history rather than rewriting financial provenance. Forgotten upload IDs referenced by durable jobs cannot be reused. RLS, household-scoped restrictive source/account/member/transaction/revision/job FKs, invoker APIs and least privileges apply to evidence. Private leases/receipts/audit and finance remain unexposed. Duplicate searches are explicitly household/account/source-scoped; no foreign financial records/hashes/receipts are returned. Audit contains context/action/actor/time, not financial descriptions, amounts, raw bodies or credentials. Financial revisions/provenance cannot be directly mutated by browser roles.
 
 One exact ES-only portable alias adds import review/commit/result contracts; architecture policy, TypeScript and Deno maps stay aligned. Stored revision and ledger source validation intentionally extend MANUAL-only assumptions without rewriting old records. The transaction correction form preserves the original provenance. No dependencies or CSV adapter implementation changed.
 
 ## Verification
 
-The complete extended verification chain passed once, then final lease/session locking, processing-budget and cleanup changes were replayed on the empty verified disposable loopback database and verified again. No real/hosted database was reset. The local reset refuses any Auth users/households or a remote project link. All seven migrations replayed successfully. Synthetic fixtures delete only their generated households.
+The full verification chain passed on the final hardened implementation after all eight migrations replayed on the empty verified disposable loopback database. No real/hosted database was reset. The local reset refuses any Auth users/households or a remote project link. Synthetic fixtures delete only their generated households.
 
 | Check | Result |
 | --- | --- |
 | TypeScript, ESLint, architecture | Passed |
-| Vitest | 304 tests, 9 files passed |
-| Permission-free cached-only Deno core/runtime | 209 passed |
+| Vitest | 305 tests, 9 files passed |
+| Permission-free cached-only Deno core/runtime | 210 passed |
 | Permission-free CSV adapter Deno | 15 passed |
 | Preview and commit Edge typechecks | Passed |
 | Production build / portable browser probe | Passed |
 | Desktop/mobile shell and four-timezone corpus | 12 passed |
-| Real PostgreSQL pgTAP/RLS | 398 assertions, 7 files passed |
+| Real PostgreSQL pgTAP/RLS | 401 assertions, 7 files passed |
 | SQL lint / security advisors | No schema errors / no issues |
 | Real Auth/API regression | 33 assertions passed |
 | Accounts regression | 33 assertions passed |
 | Transactions regression | 118 assertions passed |
 | Categorization regression | 70 assertions passed |
 | Existing CSV/Auth/API/Storage regression | 91 assertions passed |
-| Import commit/Auth/API/Storage adversarial integration | 88 in full chain; 92 including final retained USER-lock probe |
+| Import commit/Auth/API/Storage adversarial integration | 117 assertions passed |
 | Authenticated desktop/mobile Chromium | 16 passed |
-| Migration replay | Seven migrations replayed |
+| Migration replay | Eight migrations replayed |
 
 Portable additions cover strict commands/batch bounds, genuine FILE_IMPORT source validation, exact eight-place ledger effects, missing openings and immutable source lineage. Integration covers forged/foreign/anonymous requests, direct parser-RPC denial, invalid/unresolved/mixed currencies, modified mapping/version/context, repeated legitimate rows, manual/cross-file candidates, five identical concurrent requests, incompatible commands, changed-key payloads, stale history, exact reimport, network-result recovery, late injected failure/rollback, expiry/cancellation/cleanup leases, archived accounts, unchanged revoked JWTs, deleted sessions/Auth users and stable attribution. Existing transaction/category-lock regressions remain enabled.
 
 Browser stories include explicit exclusion/default unknown meaning, pending status, required warning acknowledgement, actual confirmed counts, frozen uncertain commands, a lost committed response, exact retry, evidence after raw deletion, unknown opening, posted-only ledger calculation and FILE_IMPORT correction with retained history. Desktop/mobile axe checks, no-overflow checks and empty local/session storage pass. Screenshots were inspected for RTL layout and clipping. Logs/screenshots stay ignored under `.artifacts/task8-*`.
 
-Final focused checks after the full chain: the retained USER-category-lock integration probe passed (92 import assertions), TypeScript and ESLint passed, and all four desktop/mobile import/preview stories passed again after making technical provenance details expandable. No financial code changed after the final full-chain run.
+The readiness follow-up additionally verifies source pinning despite a lower alternate UUID, explicit source mismatch, disabled-source receipt recovery, versionless stale review rejection, forgotten-ID reuse rejection, Unicode description compatibility, third-row injected rollback, and a real finalization waiting on a household lock while lease release wins. Browser stories verify that mapping changes remove the review before rebuilding it. Submission uses a synchronous guard; definite authorization/validation/conflict rejection requests a refreshed review, while uncertain delivery preserves the exact retry command. Native checkbox layout and evidence-strength labels were improved. After the full chain, the final checkbox class adjustment was checked with a rebuilt browser app and all four desktop/mobile import stories; no financial or server code changed.
 
 ## Remaining limits and handoff
 

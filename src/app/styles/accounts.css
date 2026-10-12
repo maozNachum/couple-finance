@@ -17,3 +17,6 @@
 .categorization-panel li { margin-block: .5rem; overflow-wrap: anywhere; }
 
 .import-fingerprint, .observation-history bdi { overflow-wrap: anywhere; }
+
+.import-choice { display: flex; align-items: flex-start; gap: .5rem; }
+.import-choice input[type="checkbox"] { width: auto; flex: 0 0 auto; margin-block-start: .25rem; }

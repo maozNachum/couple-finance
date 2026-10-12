@@ -34,8 +34,8 @@ Deno.serve(async req=>{
   const context=await rpc('begin_import',command??{action:'REVIEW',id:input.action==='REVIEW'?input.id:''});
   if(context.result)return reply({ok:true,result:importResultSchema.parse(context.result)});
   leaseId=context.leaseId;
-  const options=input.action==='REVIEW'?{adapter:'generic-csv-v1',format:input.format,mapping:input.mapping}:context.options;
-  if(options.adapter!=='generic-csv-v1'||new TextEncoder().encode(JSON.stringify(options)).length>8192)throw invalid();
+  const options=input.action==='REVIEW'?{adapter:'generic-csv-v1',version:1,format:input.format,mapping:input.mapping}:context.options;
+  if(options.adapter!=='generic-csv-v1'||options.version!==1||Object.keys(options).sort().join(',')!=='adapter,format,mapping,version'||new TextEncoder().encode(JSON.stringify(options)).length>8192)throw invalid();
   const validated=importRequestSchema.safeParse({action:'REVIEW',id:context.upload.id,format:options.format,mapping:options.mapping});
   if(!validated.success||validated.data.action!=='REVIEW')throw invalid();
   // Database-issued path only. No provider/browser URL is ever fetched.

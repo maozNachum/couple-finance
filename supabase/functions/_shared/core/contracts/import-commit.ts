@@ -21,7 +21,7 @@ export const importReviewSchema = z.strictObject({
  id:z.uuid(),householdId:z.uuid(),accountId:z.uuid(),sourceId:z.uuid(),uploadId:z.uuid(),
  contentHash:importHashSchema,previewHash:importHashSchema,adapter:z.literal('generic-csv-v1'),
  preview:previewSchema,duplicates:z.array(duplicateRowSchema).max(2000).readonly(),
-}).readonly();
+}).refine(r=>r.duplicates.length===r.preview.rows.length && new Set(r.duplicates.map(d=>d.row)).size===r.duplicates.length && r.preview.rows.every(row=>r.duplicates.some(d=>d.row===row.row))).readonly();
 export const importResultSchema = z.strictObject({
  reviewId:z.uuid(),householdId:z.uuid(),accountId:z.uuid(),sourceId:z.uuid(),contentHash:importHashSchema,
  committed:z.number().int().min(1).max(importBatchLimit),skipped:z.number().int().min(0).max(2000),

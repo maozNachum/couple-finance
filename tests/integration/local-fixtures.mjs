@@ -36,6 +36,7 @@ export async function createFixture() {
         delete from finance.transactions where household_id in ('${households[0]}','${households[1]}');
         delete from finance.balance_observations where household_id in ('${households[0]}','${households[1]}');
         delete from finance.fx_evidence where household_id in ('${households[0]}','${households[1]}');
+        delete from private.import_source_bindings where household_id in ('${households[0]}','${households[1]}');
         delete from finance.account_sources where household_id in ('${households[0]}','${households[1]}');
         delete from finance.accounts where household_id in ('${households[0]}','${households[1]}');
         delete from finance.rule_versions where household_id in ('${households[0]}','${households[1]}');
