@@ -1,0 +1,1 @@
+{"nodeModulesDir":"manual","lock":false,"compilerOptions":{"strict":true,"lib":["es2022","deno.window"]},"imports":{"zod":"npm:zod@4.6.5","decimal.js":"npm:decimal.js@10.6.0"}}

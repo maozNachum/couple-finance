@@ -17,11 +17,11 @@ enabled = false
 [realtime]
 enabled = false
 [storage]
-enabled = false
+enabled = true
 [analytics]
 enabled = false
 [edge_runtime]
-enabled = false
+enabled = true
 [local_smtp]
 enabled = true
 port = 15424
@@ -54,3 +54,6 @@ content_path = "./supabase/templates/invite.html"
 [auth.email.template.magic_link]
 subject = "Sign in to Couple Finance"
 content_path = "./supabase/templates/magic-link.html"
+
+[functions.import-preview]
+verify_jwt = true

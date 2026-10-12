@@ -19,3 +19,9 @@ Runs persist status, counts, lease, cursor, safe failure codes and attempts. Com
 Open Banking, Fair and Harel access must be verified rather than assumed. Manual valuations and imports remain useful fallbacks.
 
 AI is deferred. When introduced it runs server-side with controlled read-only tools, minimized inputs, computed evidence, validation and quotas. It receives no credentials, unrestricted SQL or execution capability. Deterministic rules precede AI. No transfers, payments, trades, withdrawals or automatic financial actions exist in this architecture.
+
+## Task 7 generic CSV adapter
+
+`providers/generic-csv` implements the smallest `CsvPreviewAdapter` interface: a versioned adapter ID and bounded preview call. It accepts UTF-8 bytes plus explicit format/mapping and existing account currency. Raw rows and CSV quoting stay inside this adapter. Headers and optional reference/supplementary display values are untrusted text; there are no institution-specific header assumptions or tested claims about Otsar HaHayal/card providers. Future institution adapters must use real/representative fixtures and preserve these isolation and provenance boundaries.
+
+Task 7 never commits, detects duplicates, appoints source authority or runs category rules. Every future import must reauthorize and reparse; browser previews cannot become trusted commit commands.
