@@ -96,6 +96,9 @@
       ],
       "@finance/domain/categorization": [
         "./supabase/functions/_shared/core/domain/categorization.ts"
+      ],
+      "@finance/contracts/import-preview": [
+        "./supabase/functions/_shared/core/contracts/import-preview.ts"
       ]
     }
   },

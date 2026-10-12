@@ -64,3 +64,5 @@ Task 5 adds immutable transaction revisions, atomic allocations/receipts/audit a
 6. Check the push result and any GitHub Actions run. Never force-push or rewrite shared history without explicit approval.
 
 Task 6 adds household categories, deterministic description rules, read-only preview, explicit audited application and manual locking. See [decisions](docs/task-6-decisions.md), [delivery report](docs/task-6-report.md) and [Task 7 prompt](docs/task-7-prompt.md). Run `npm run test:categorization` for real Auth/API concurrency, history and authorization checks (also included in `verify`).
+
+Task 7 adds private CSV upload preparation at `/imports`, with explicit mapping and server-validated preview only. No transactions are imported. See [delivery/limits](docs/task-7-report.md) and [Task 8 handoff](docs/task-8-prompt.md). Local Storage and Edge runtime are enabled for the synthetic verification stack; operator-only `npm run local:cleanup-imports` removes expired/cancelled staging data.

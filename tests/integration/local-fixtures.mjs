@@ -18,6 +18,9 @@ export async function createFixture() {
       insert into finance.profiles(id,display_name) values ('${users[0].id}','Synthetic A'),('${users[1].id}','Synthetic B');
       insert into finance.household_members(household_id,user_id,display_name) values ('${households[0]}','${users[0].id}','Synthetic A'),('${households[1]}','${users[1].id}','Synthetic B'); commit;`);
     return { users, households, async cleanup() {
+      const uploads=JSON.parse(localSql(`select coalesce(json_agg(object_path),'[]'::json) from finance.import_uploads where household_id in ('${households[0]}','${households[1]}');`));
+      if(uploads.length){const removed=await admin.storage.from('import-preview').remove(uploads);if(removed.error)throw new Error('Synthetic staging cleanup failed.');}
+      localSql(`delete from finance.import_uploads where household_id in ('${households[0]}','${households[1]}'); delete from private.import_audit where household_id in ('${households[0]}','${households[1]}');`);
       for (const user of users) await admin.auth.admin.deleteUser(user.id);
       // Explicit deletion is limited to this fixture's generated synthetic households.
       localSql(`begin;

@@ -35,6 +35,7 @@
     "@finance/contracts/ledger": "../../supabase/functions/_shared/core/contracts/ledger.ts",
     "@finance/domain/money/ledger": "../../supabase/functions/_shared/core/domain/money/ledger.ts",
     "@finance/contracts/categorization": "../../supabase/functions/_shared/core/contracts/categorization.ts",
-    "@finance/domain/categorization": "../../supabase/functions/_shared/core/domain/categorization.ts"
+    "@finance/domain/categorization": "../../supabase/functions/_shared/core/domain/categorization.ts",
+    "@finance/contracts/import-preview": "../../supabase/functions/_shared/core/contracts/import-preview.ts"
   }
 }

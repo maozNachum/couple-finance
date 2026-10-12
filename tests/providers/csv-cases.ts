@@ -1,0 +1,24 @@
+import { previewCsv, readCsv } from '../../supabase/functions/_shared/providers/generic-csv/adapter.ts';
+export const format={encoding:'UTF-8',delimiter:','};
+export const mapping={date:0,description:1,amount:2,debit:null,credit:null,currency:null,reference:null,supplementary:null,dateFormat:'DD/MM/YYYY',decimal:'.',grouping:',',sign:'POSITIVE_INCREASES',fixedCurrency:'ILS'};
+const bytes=(s:string)=>new TextEncoder().encode(s);
+const parse=(row:string,m:unknown=mapping,f:unknown=format)=>previewCsv(bytes('date,description,amount\n'+row),f,m,'ILS');
+function check(ok:unknown){if(!ok)throw new Error('CSV case failed');}
+function reject(fn:()=>unknown){let rejected=false;try{fn();}catch{rejected=true;}check(rejected);}
+export const csvCases=[
+ {name:'Hebrew BOM escaped quotes and multiline physical attribution',run(){const p=previewCsv(bytes('\uFEFFdate,description,amount\r\n01/02/2026,"שלום ""עולם""\r\nשורה",-10.20\r\n02/02/2026,סוף,1'),format,mapping,'ILS');check(p.valid===2&&p.rows[0]?.lineStart===2&&p.rows[0]?.lineEnd===3&&p.rows[1]?.lineStart===4&&p.rows[0]?.money?.amount==='-10.2');}},
+ {name:'Semicolon explicit decimal comma and grouping point',run(){const p=previewCsv(bytes('d;t;a\n01/02/2026;שלום;1.234,56'),{encoding:'UTF-8',delimiter:';'},{...mapping,decimal:',',grouping:'.'},'ILS');check(p.rows[0]?.money?.amount==='1234.56');}},
+ {name:'Date convention explicit and leap day validated',run(){check(parse('01/02/2026,x,1').rows[0]?.date==='2026-02-01');check(parse('01/02/2026,x,1',{...mapping,dateFormat:'MM/DD/YYYY'}).rows[0]?.date==='2026-01-02');check(parse('29/02/2026,x,1').invalid===1);}},
+ {name:'No date decimal or sign guessing',run(){for(const key of ['dateFormat','decimal','sign'])reject(()=>parse('01/02/2026,x,1',{...mapping,[key]:undefined}));check(parse('01/02/2026,x,"1.234,56"').invalid===1);}},
+ {name:'Money precision never rounds or converts through float',run(){check(parse('01/02/2026,x,9999999999999999.12345678').rows[0]?.money?.amount==='9999999999999999.12345678');for(const a of ['1.000000000','10000000000000000','1e2','NaN','Infinity','1.2.3','--1'])check(parse(`01/02/2026,x,${a}`).invalid===1);}},
+ {name:'Signed direction independent from financial meaning',run(){const p=parse('01/02/2026,x,10',{...mapping,sign:'POSITIVE_DECREASES'});check(p.rows[0]?.money?.amount==='-10'&&p.rows[0]?.effect==='UNCLASSIFIED');}},
+ {name:'Debit credit both present conflict, negatives unsupported',run(){const m={...mapping,amount:null,debit:2,credit:3,sign:'CREDIT_INCREASES'};const p=(v:string)=>previewCsv(bytes('d,t,deb,cred\n01/02/2026,x,'+v),format,m,'ILS');check(p('10,').rows[0]?.money?.amount==='-10');check(p(',10').rows[0]?.money?.amount==='10');check(p('10,20').invalid===1);check(p('-10,').invalid===1);check(p('0,0').valid===1);}},
+ {name:'Mapping collisions and out of bounds rejected',run(){reject(()=>parse('01/02/2026,x,1',{...mapping,amount:1}));reject(()=>parse('01/02/2026,x,1',{...mapping,amount:31}));reject(()=>parse('01/02/2026,x,1',{...mapping,debit:3}));reject(()=>parse('01/02/2026,x,1',{...mapping,grouping:'.'}));}},
+ {name:'Currency explicit, missing or mixed cannot import',run(){const m={...mapping,currency:3,fixedCurrency:null};const p=previewCsv(bytes('d,t,a,c\n01/02/2026,x,1,ILS\n01/02/2026,x,1,USD\n01/02/2026,x,1,₪'),format,m,'ILS');check(p.valid===1&&p.invalid===2);reject(()=>parse('01/02/2026,x,1',{...mapping,fixedCurrency:null}));}},
+ {name:'Missing fields remain unresolved',run(){const p=parse(',,');check(p.unresolved===1&&p.rows[0]?.issues.includes('MISSING_DATE')&&p.rows[0]?.issues.includes('MISSING_AMOUNT'));}},
+ {name:'Malformed quotes, ragged rows and missing headers rejected',run(){for(const s of ['a,b\n"open,b','a,b\na"b,c','a,b\n"a" x,b','a,a\nx,y',',a\nx,y','a,b\nx','a,b\nx,y,z'])reject(()=>readCsv(bytes(s),format));}},
+ {name:'Byte, row, column, cell bounds fail, never truncate',run(){reject(()=>readCsv(new Uint8Array(1048577),format));reject(()=>readCsv(bytes('a\n'+'x\n'.repeat(2001)),format));reject(()=>readCsv(bytes(Array.from({length:33},(_,i)=>'c'+i).join(',')),format));reject(()=>readCsv(bytes('a\n'+'x'.repeat(2049)),format));check(readCsv(bytes('a\n'+'x\n'.repeat(2000)),format).length===2001);}},
+ {name:'Invalid UTF-8, UTF-16, NUL and unsupported encoding fail',run(){reject(()=>readCsv(new Uint8Array([255,254,65,0]),format));reject(()=>readCsv(new Uint8Array([0xc3,0x28]),format));reject(()=>readCsv(bytes('a\n\u0000'),format));reject(()=>readCsv(bytes('a'),{...format,encoding:'windows-1255'}));}},
+ {name:'Formula HTML and URL content remain inert strings',run(){const p=parse('01/02/2026,"=HYPERLINK(""https://example.test"")<script>",1');check(p.valid===1&&p.rows[0]?.description.startsWith('=HYPERLINK'));}},
+ {name:'Header-only inspection returns bounded counts without mapping guesses',run(){const p=previewCsv(bytes('a,b\nx,y'),format,null,'ILS');check(p.rows.length===0&&p.total===1&&p.unresolved===1);}},
+];
