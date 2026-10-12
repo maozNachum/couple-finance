@@ -1,10 +1,10 @@
 import { test,expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import { createFixture } from '../integration/local-fixtures.mjs';
-import { localSql,uuid } from '../../scripts/local-supabase.mjs';
+import { localAdmin,localSql,uuid } from '../../scripts/local-supabase.mjs';
 import { cleanupImports } from '../../scripts/cleanup-imports.mjs';
 
-test('explicit RTL import selection, warnings, atomic commit, lost response and durable evidence',async({page},testInfo)=>{
+for(const recovery of ['retry','sign-out','revocation'] as const) test(`explicit RTL import selection, warnings, atomic commit, lost response and durable evidence: ${recovery}`,async({page,context},testInfo)=>{
  test.setTimeout(120000);const fixture=await createFixture();const h=uuid(fixture.households[0]);
  try{
   await page.goto(`/auth/confirm#token_hash=${fixture.users[0]!.hash}&type=invite`);await page.getByRole('button',{name:'אישור כניסה'}).click();await expect(page.getByRole('heading',{name:'Synthetic household A'})).toBeVisible();
@@ -20,9 +20,29 @@ test('explicit RTL import selection, warnings, atomic commit, lost response and 
   await expect(review.getByLabel('לכלול רשומה 4')).toBeDisabled();await expect(review.getByLabel('לכלול רשומה 5')).toBeDisabled();await expect(review.getByLabel('לכלול רשומה 2')).not.toBeChecked();
   await review.getByLabel('לכלול רשומה 2').check();await expect(review.getByRole('button',{name:'בדיקת סיכום לפני שמירה'})).toBeDisabled();await review.getByLabel('בדקתי את האזהרה ברשומה 2; זו תנועה נפרדת שיש לשמור').check();await review.getByLabel('משמעות רשומה 2').selectOption('EXPENSE');
   await review.getByLabel('לכלול רשומה 3').check();await review.getByLabel('בדקתי את האזהרה ברשומה 3; זו תנועה נפרדת שיש לשמור').check();await review.getByLabel('מצב רשומה 3').selectOption('PENDING');
-  let lost=false;await page.route('**/functions/v1/import-commit',async route=>{if(!lost&&route.request().postDataJSON().action==='COMMIT'){lost=true;await route.fetch();await route.abort('failed');}else await route.continue();});
+  let lost=false;const commands:unknown[]=[];await page.route('**/functions/v1/import-commit',async route=>{if(route.request().postDataJSON().action==='COMMIT')commands.push(route.request().postDataJSON());if(!lost&&route.request().postDataJSON().action==='COMMIT'){lost=true;await route.fetch();await route.abort('failed');}else await route.continue();});
   await review.getByRole('button',{name:'בדיקת סיכום לפני שמירה'}).click();await expect(review.getByRole('heading',{name:'שמירת 2 תנועות כספיות'})).toBeVisible();await review.getByRole('button',{name:'אישור ושמירת יבוא'}).click();await expect(review.getByRole('button',{name:'בדיקת תוצאה וניסיון חוזר של אותה בקשה'})).toBeVisible();await expect(review.getByRole('heading',{name:'היבוא נשמר ואושר בשרת'})).toHaveCount(0);
+  // Real second tab plus deterministic focus notification for headless/mobile emulation.
+  const other=await context.newPage();await other.goto('about:blank');await other.bringToFront();
+  const access=page.waitForResponse(response=>response.url().includes('/rest/v1/rpc/import_evidence')&&response.ok());
+  await page.bringToFront();await page.evaluate(()=>window.dispatchEvent(new Event('focus')));await access;await other.close();
+  const retry=review.getByRole('button',{name:'בדיקת תוצאה וניסיון חוזר של אותה בקשה'});await expect(retry).toBeEnabled();await expect(review.getByLabel('לכלול רשומה 2')).toBeChecked();expect(commands).toHaveLength(1);
+  expect(await page.evaluate(async()=>({local:localStorage.length,session:sessionStorage.length,databases:(await indexedDB.databases()).length}))).toEqual({local:0,session:0,databases:0});
+  if(recovery==='sign-out'){
+   // Sign out through the existing household screen in another authenticated tab.
+   // The import page stays mounted; global sign-out removes its live server session too.
+   const logoutTab=await context.newPage();const fresh=await localAdmin().auth.admin.generateLink({type:'magiclink',email:fixture.users[0]!.email});if(fresh.error)throw new Error('Synthetic logout link unavailable');
+   await logoutTab.goto(`/auth/confirm#token_hash=${fresh.data.properties.hashed_token}&type=email`);await logoutTab.getByRole('button',{name:'אישור כניסה'}).click();await expect(logoutTab.getByRole('heading',{name:'Synthetic household A'})).toBeVisible();await logoutTab.getByRole('button',{name:'יציאה',exact:true}).click();await expect(logoutTab).toHaveURL(/[/]sign-in$/);
+   await page.bringToFront();await page.evaluate(()=>window.dispatchEvent(new Event('focus')));
+   await expect(review).toHaveCount(0);await expect(page.getByText('תנועה נפרדת',{exact:true})).toHaveCount(0);expect(commands).toHaveLength(1);await logoutTab.close();return;
+  }
+  if(recovery==='revocation'){
+   localSql(`update finance.household_members set status='REVOKED' where household_id='${h}'`);
+   const revokedAccess=page.waitForResponse(response=>response.url().includes('/rest/v1/rpc/import_evidence')&&response.ok());await page.evaluate(()=>window.dispatchEvent(new Event('focus')));await revokedAccess;
+   await expect(review).toHaveCount(0);await expect(page.getByRole('button',{name:'בדיקת תוצאה וניסיון חוזר של אותה בקשה'})).toHaveCount(0);await expect(page.getByText('תנועה נפרדת',{exact:true})).toHaveCount(0);await expect(page.getByText('Synthetic import account',{exact:true})).toHaveCount(0);expect(commands).toHaveLength(1);return;
+  }
   expect(localSql(`select count(*) from finance.transactions where household_id='${h}'`)).toBe('2');await expect(review.getByLabel('לכלול רשומה 2')).toBeDisabled();await review.getByRole('button',{name:'בדיקת תוצאה וניסיון חוזר של אותה בקשה'}).click();await expect(review.getByRole('heading',{name:'היבוא נשמר ואושר בשרת'})).toBeVisible();await expect(review.getByText('נשמרו 2 · דולגו 0 · שגויות 1 · חסרות מידע 1')).toBeVisible();
+  expect(commands).toHaveLength(2);expect(commands[1]).toEqual(commands[0]);
   expect(localSql(`select count(*) from finance.transactions where household_id='${h}'`)).toBe('2');expect(localSql(`select count(*) from finance.transaction_allocations where household_id='${h}' and payload->'categorization'='{"origin":"UNCLASSIFIED","userLocked":false}'`)).toBe('2');expect(localSql(`select count(*) from finance.transaction_revisions where household_id='${h}' and status='PENDING'`)).toBe('1');
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);expect((await new AxeBuilder({page}).analyze()).violations).toEqual([]);expect(await page.evaluate(()=>({local:localStorage.length,session:sessionStorage.length}))).toEqual({local:0,session:0});
   await page.screenshot({path:`.artifacts/task8-${testInfo.project.name}.png`,fullPage:true});

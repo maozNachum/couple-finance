@@ -1,12 +1,12 @@
 # Task 8 delivery — Secure import commit, duplicate review and durable provenance
 
-Date: 2026-10-13 (readiness follow-up). Scope: Task 8 only. Task 7 PR #5 was verified merged at `f95767844f34209fb4ca57b89cf8cbd01b140dec`; exact master push [CI run 38276792541](https://github.com/maozNachum/couple-finance/actions/runs/38276792541) succeeded before implementation. Remote master was fetched, local master fast-forwarded and `feature/task-8-import-commit-dedup` created. Applicable AGENTS.md, architecture/security/model/provider/portable/roadmap and Tasks 2–7 reports/decisions/review fixes were read. Read-only root instructions and synced sources are unchanged.
+Date: 2026-10-13 (independent review fixes). Scope: Task 8 only. Task 7 PR #5 was verified merged at `f95767844f34209fb4ca57b89cf8cbd01b140dec`; exact master push [CI run 38276792541](https://github.com/maozNachum/couple-finance/actions/runs/38276792541) succeeded before implementation. Remote master was fetched, local master fast-forwarded and `feature/task-8-import-commit-dedup` created. Applicable AGENTS.md, architecture/security/model/provider/portable/roadmap and Tasks 2–7 reports/decisions/review fixes were read. Read-only root instructions and synced sources are unchanged.
 
 ## Delivered workflow
 
 The existing `/imports` upload, explicit mapping and preview remain. A separate server review reparses the original private CSV and displays all valid/invalid/unresolved/exact-prior-import/candidate rows. Inclusion defaults to false. Users choose each accepted row, its independent financial effect and POSTED/PENDING status, acknowledge candidate warnings and confirm a summary explicitly labelled financial persistence. Unknown meaning stays UNCLASSIFIED; neither sign nor category rules infer meaning. No opening, category, opposite-account movement or reconciliation is created.
 
-The confirmation/result identifies household, selected account, file fingerprint, resolved FILE_IMPORT source and review. Success appears only after a committed server result. On uncertain delivery, row decisions are frozen and the exact command remains in page memory for retry. Refresh loads durable committed evidence; file/context/mapping changes invalidate review. Rows render in pages of 25 without dropping source rows. The RTL desktop/mobile interface has native labelled controls, explicit duplicate reasons, candidate references and truthful committed/skipped/invalid/unresolved counts. No authenticated financial/session/upload data is written to browser persistent storage.
+The confirmation/result identifies household, selected account, file fingerprint, resolved FILE_IMPORT source and review. Success appears only after a committed server result. On uncertain delivery, row decisions are frozen and the exact command remains in parent page memory for retry. Ordinary focus revalidates access and preserves that same command/review; confirmed access loss or sign-out clears protected state. Explicit refresh loads durable evidence and clears memory; file/context/mapping changes invalidate review. Rows render in pages of 25 without dropping source rows. The RTL desktop/mobile interface has native labelled controls, explicit duplicate reasons, candidate references and truthful committed/skipped/invalid/unresolved counts. No authenticated financial/session/upload data is written to browser persistent storage.
 
 ## Server authorization and provenance
 
@@ -26,7 +26,7 @@ Command idempotency and financial duplicate review are separate mechanisms. The 
 | --- | --- |
 | Same account/source, byte hash and logical source row, same interpreted row digest | Exact prior import; inclusion blocked |
 | Same original file row with a changed interpretation | INTERPRETATION_CHANGED; blocked, cannot evade identity by changing signs/mapping |
-| Equal nonempty source reference within actual FILE_IMPORT source | Possible candidate requiring acknowledgement |
+| Equal nonempty, non-whitespace-only source reference within actual FILE_IMPORT source | Possible candidate requiring acknowledgement |
 | Same original date, exact signed amount/currency and normalized description | Possible financial-values candidate requiring acknowledgement |
 | Same date and exact signed amount/currency with differing description | Weak possible candidate requiring acknowledgement |
 | Repeated date/amount/currency within this file | In-file warning requiring acknowledgement; distinct physical rows can both be accepted |
@@ -47,13 +47,13 @@ Preparation/commit has a 45-second nonrenewable lease, at most eight simultaneou
 
 ## Security and compatibility
 
-Two forward migrations are CLI-created: `20261012180706_task8_import_commit.sql` and `20261012204927_task8_review_hardening.sql`. All six merged migrations and the previously committed Task 8 migration are unchanged. The hardening migration backfills only unambiguous job source identities and refuses an upgrade during active leases or conflicting source history rather than rewriting financial provenance. Forgotten upload IDs referenced by durable jobs cannot be reused. RLS, household-scoped restrictive source/account/member/transaction/revision/job FKs, invoker APIs and least privileges apply to evidence. Private leases/receipts/audit and finance remain unexposed. Duplicate searches are explicitly household/account/source-scoped; no foreign financial records/hashes/receipts are returned. Audit contains context/action/actor/time, not financial descriptions, amounts, raw bodies or credentials. Financial revisions/provenance cannot be directly mutated by browser roles.
+Three forward migrations are CLI-created: `20261012180706_task8_import_commit.sql`, `20261012204927_task8_review_hardening.sql`, and `20261012215904_task8_independent_review_fixes.sql`. All six merged migrations and both previously pushed Task 8 migrations are unchanged. The hardening migration backfills only unambiguous job source identities and refuses an upgrade during active leases or conflicting source history rather than rewriting financial provenance. Forgotten upload IDs referenced by durable jobs cannot be reused. RLS, household-scoped restrictive source/account/member/transaction/revision/job FKs, invoker APIs and least privileges apply to evidence. Private leases/receipts/audit and finance remain unexposed. Duplicate searches are explicitly household/account/source-scoped; no foreign financial records/hashes/receipts are returned. Audit contains context/action/actor/time, not financial descriptions, amounts, raw bodies or credentials. Financial revisions/provenance cannot be directly mutated by browser roles.
 
 One exact ES-only portable alias adds import review/commit/result contracts; architecture policy, TypeScript and Deno maps stay aligned. Stored revision and ledger source validation intentionally extend MANUAL-only assumptions without rewriting old records. The transaction correction form preserves the original provenance. No dependencies or CSV adapter implementation changed.
 
 ## Verification
 
-The full verification chain passed on the final hardened implementation after all eight migrations replayed on the empty verified disposable loopback database. No real/hosted database was reset. The local reset refuses any Auth users/households or a remote project link. Synthetic fixtures delete only their generated households.
+The full verification chain passed on the final hardened implementation after all nine migrations replayed on the empty verified disposable loopback database. No real/hosted database was reset. The local reset refuses any Auth users/households or a remote project link. Synthetic fixtures delete only their generated households.
 
 | Check | Result |
 | --- | --- |
@@ -71,9 +71,9 @@ The full verification chain passed on the final hardened implementation after al
 | Transactions regression | 118 assertions passed |
 | Categorization regression | 70 assertions passed |
 | Existing CSV/Auth/API/Storage regression | 91 assertions passed |
-| Import commit/Auth/API/Storage adversarial integration | 117 assertions passed |
-| Authenticated desktop/mobile Chromium | 16 passed |
-| Migration replay | Eight migrations replayed |
+| Import commit/Auth/API/Storage adversarial integration | 195 assertions passed |
+| Authenticated desktop/mobile Chromium | 20 passed |
+| Migration replay | Nine migrations replayed |
 
 Portable additions cover strict commands/batch bounds, genuine FILE_IMPORT source validation, exact eight-place ledger effects, missing openings and immutable source lineage. Integration covers forged/foreign/anonymous requests, direct parser-RPC denial, invalid/unresolved/mixed currencies, modified mapping/version/context, repeated legitimate rows, manual/cross-file candidates, five identical concurrent requests, incompatible commands, changed-key payloads, stale history, exact reimport, network-result recovery, late injected failure/rollback, expiry/cancellation/cleanup leases, archived accounts, unchanged revoked JWTs, deleted sessions/Auth users and stable attribution. Existing transaction/category-lock regressions remain enabled.
 
@@ -88,3 +88,10 @@ No deployment, live provider, AI, reconciliation, investment analytics, budget/f
 The feature branch is committed/pushed and its PR targets master; it must remain unmerged for independent review. Remote PR CI is tracked separately and is not inferred from local success. [Task 9 prompt](task-9-prompt.md) is prepared for explicit transfer/card/loan reconciliation only. Stop after Task 8.
 
 Implementation references: [Supabase database function privileges](https://supabase.com/docs/guides/database/functions), [Storage access controls](https://supabase.com/docs/guides/storage/security/access-control), [PostgreSQL explicit locking](https://www.postgresql.org/docs/current/explicit-locking.html).
+
+
+## Independent review fixes
+
+PR #6 identified false reference candidates for blank cells and loss of an uncertain command on ordinary focus refresh. Both are addressed without modifying previously pushed migrations, introducing another PR or extending Task 9. The forward SQL changes only three reference-evidence predicates: blank/null/Unicode-whitespace-only references are absent evidence, usable references remain exact, and durable original text plus independent financial-value predicates are preserved. The parent retains the exact uncertain command in memory while focus revalidates live household/account/source access. Confirmed sign-out/revocation clears protected state; explicit resets/navigation/reload discard memory and require durable-evidence recovery/fresh review.
+
+Expanded real Auth/Edge/PostgreSQL tests cover six reference cases, counts/IDs, original text and independent financial matching. Desktop/mobile browser scenarios compare identical COMMIT payloads after a real tab round trip, retain the original ledger/evidence story, and verify global sign-out from another authenticated tab and unchanged-JWT revocation clear protected content. No persistent browser storage is introduced. Exact changed files, SQL, results and limitations are recorded in [Task 8 review fixes](task-8-review-fixes.md).

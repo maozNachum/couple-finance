@@ -119,6 +119,20 @@ try{
  await rpc(a,'release_import',{id:lease.leaseId});eq((await review(leased)).error.code,'CONFLICT','expired upload cannot review');await cleanupImports();eq((await a.storage.from('import-preview').download(leased.path)).error!==null,true,'expired raw removed after lease');
  await rpc(a,'import_command',{action:'CANCEL',id:u.id});eq((await review(u)).error.code,'CONFLICT','cancelled upload blocks new review');await cleanupImports();eq((await edge(a,cmd)).result,result,'receipt recovery after raw and metadata deletion');
  eq((await rpc(a,'import_command',{action:'AUTHORIZE',id:u.id,householdId:h,accountId:aid,sourceId:sid,filename:'reused.csv',bytes:7})).error.code,'CONFLICT','durable upload identity cannot be reused after cleanup');eq((await b.rpc('import_evidence')).data,[],'durable evidence household isolation');
+ // Blank references never invent identity; financial-value predicates remain independent.
+ const quote=value=>'"'+value.replaceAll('"','""')+'"';
+ const referenceCases=[{name:'empty',stored:'',query:'',expected:false},{name:'whitespace',stored:' \t\n ',query:' \t\n ',expected:false},{name:'unicode whitespace',stored:'\u0085\u00a0\u2003',query:'\u0085\u00a0\u2003',expected:false},{name:'null',stored:null,query:null,expected:false},{name:'equal',stored:'review-real-reference',query:'review-real-reference',expected:true},{name:'different',stored:'review-different-a',query:'review-different-b',expected:false}];
+ for(const [i,testCase] of referenceCases.entries()){
+  const options={...mapping,reference:testCase.stored===null?null:3};
+  const seed=await upload('date,description,amount,ref\n2026-09-01,Reference seed '+i+','+(200+i)+','+quote(testCase.stored??''));const seedReview=(await review(seed,a,options)).review;
+  const seedResult=await edge(a,decide(seedReview,[2]));eq(seedResult.ok,true,testCase.name+' reference seed');
+  eq(localSql(`select coalesce(to_json(source_reference)::text,'null') from finance.import_rows where revision_id='${uuid(seedResult.result.transactions[0].revisionId)}'`),JSON.stringify(testCase.stored),testCase.name+' reference provenance retained exactly');
+  const probe=await upload('date,description,amount,ref\n2026-08-01,Reference probe '+i+','+(300+i)+','+quote(testCase.query??''));const probeReview=(await review(probe,a,options)).review,duplicate=probeReview.duplicates[0];
+  eq(duplicate.reasons.includes('SAME_REFERENCE'),testCase.expected,testCase.name+' reference evidence');eq(duplicate.candidateCount,testCase.expected?1:0,testCase.name+' candidate count');eq(duplicate.candidates,testCase.expected?[seedResult.result.transactions[0].transactionId]:[],testCase.name+' candidate IDs');
+  const financial=await upload('date,description,amount,ref\n2026-09-01,Reference seed '+i+','+(200+i)+','+quote('different-financial-probe-'+i));const financialReview=(await review(financial,a,{...mapping,reference:3})).review;
+  eq(financialReview.duplicates[0].reasons.includes('SAME_FINANCIAL_VALUES'),true,testCase.name+' financial evidence independent');eq(financialReview.duplicates[0].reasons.includes('SAME_REFERENCE'),false,testCase.name+' differing reference cannot invent evidence');
+  for(const temporary of [seed,probe,financial]){assert.equal((await rpc(a,'import_command',{action:'CANCEL',id:temporary.id})).ok,true);assert.equal((await a.storage.from('import-preview').remove([temporary.path])).error,null);assert.equal((await rpc(a,'import_command',{action:'FORGET',id:temporary.id})).ok,true);}
+ }
  const revoke=await upload('date,description,amount,ref\n2026-10-07,revoke,1,revoke');const revokeReview=(await review(revoke)).review;
  localSql(`update finance.household_members set status='REVOKED' where household_id='${h}'`);eq((await edge(a,decide(revokeReview))).error.code,'NOT_AUTHORIZED','unchanged JWT revoked member');eq((await edge(a,cmd)).error.code,'NOT_AUTHORIZED','revoked cannot recover receipts');eq((await a.rpc('import_evidence')).data,[],'revoked evidence denied');
  localSql(`update finance.household_members set status='ACTIVE' where household_id='${h}'`);

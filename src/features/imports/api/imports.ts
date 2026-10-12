@@ -6,7 +6,7 @@ import { internalSafeError, safeErrorSchema } from '@finance/contracts/safe-erro
 import { importRequestSchema, importReviewSchema, importResultSchema } from '@finance/contracts/import-commit';
 const client=()=>{const c=browserClient();if(!c)throw internalSafeError();return c;};
 export async function loadImports(){
- const c=client();const user=await c.auth.getUser();if(user.error||!user.data.user)throw internalSafeError();
+ const c=client();const user=await c.auth.getUser();if(user.error||!user.data.user){if((!user.error&&!user.data.user)||user.error?.status===401||user.error?.status===403)throw safeErrorSchema.parse({code:'NOT_AUTHORIZED',kind:'AUTHORIZATION',safeMessage:'This action is not permitted.',retryable:false});throw internalSafeError();}
  const [a,u,h,e]=await Promise.all([c.from('accounts').select('payload').limit(1000),c.rpc('list_imports'),c.from('households').select('id,name,created_at').limit(1000),c.rpc('import_evidence')]);
  if(a.error||u.error||h.error||e.error||a.data.length>=1000||h.data.length>=1000)throw internalSafeError();
  return {households:householdListSchema.parse(h.data.map(r=>({id:r.id,name:r.name,createdAt:String(r.created_at).replace(/\+00:00$/,'Z')}))),accounts:accountRecordsSchema.parse(a.data.map(r=>r.payload)),uploads:uploadListSchema.parse(u.data),evidence:importResultSchema.array().parse(e.data)};
