@@ -14,10 +14,10 @@
     "check:architecture": "node scripts/check-boundaries.mjs",
     "test": "vitest run",
     "test:watch": "vitest",
-    "check:deno": "deno check --cached-only --config tests/runtime/deno.json tests/runtime/application-context.deno.ts tests/runtime/core.deno.ts tests/runtime/permissions.deno.ts && deno test --cached-only --no-prompt --config tests/runtime/deno.json tests/runtime/application-context.deno.ts tests/runtime/core.deno.ts tests/runtime/permissions.deno.ts && deno test --cached-only --no-prompt --config tests/runtime/csv-deno.json tests/runtime/csv.deno.ts && deno check --cached-only --config tests/runtime/csv-deno.json supabase/functions/import-preview/index.ts",
+    "check:deno": "deno check --cached-only --config tests/runtime/deno.json tests/runtime/application-context.deno.ts tests/runtime/core.deno.ts tests/runtime/permissions.deno.ts && deno test --cached-only --no-prompt --config tests/runtime/deno.json tests/runtime/application-context.deno.ts tests/runtime/core.deno.ts tests/runtime/permissions.deno.ts && deno test --cached-only --no-prompt --config tests/runtime/csv-deno.json tests/runtime/csv.deno.ts && deno check --cached-only --config tests/runtime/csv-deno.json supabase/functions/import-preview/index.ts && deno check --cached-only --config tests/runtime/csv-deno.json supabase/functions/import-commit/index.ts",
     "build": "npm run check:architecture && vite build && node scripts/build-core-probe.mjs",
     "test:e2e": "playwright test",
-    "verify": "npm run typecheck && npm run lint && npm run check:architecture && npm test && npm run check:deno && npm run build && npm run test:e2e && npm run db:test && npm run db:lint && npm run db:advisors && npm run test:auth && npm run test:accounts && npm run test:transactions && npm run test:categorization && npm run test:imports && npm run test:auth:e2e",
+    "verify": "npm run typecheck && npm run lint && npm run check:architecture && npm test && npm run check:deno && npm run build && npm run test:e2e && npm run db:test && npm run db:lint && npm run db:advisors && npm run test:auth && npm run test:accounts && npm run test:transactions && npm run test:categorization && npm run test:imports && npm run test:import-commit && npm run test:auth:e2e",
     "db:start": "node scripts/local-stack.mjs",
     "db:test": "supabase test db --local",
     "db:lint": "supabase db lint --local",
@@ -31,7 +31,8 @@
     "test:transactions": "node scripts/test-transactions.mjs",
     "test:categorization": "node scripts/test-categorization.mjs",
     "test:imports": "node scripts/test-imports.mjs",
-    "local:cleanup-imports": "node scripts/cleanup-imports.mjs"
+    "local:cleanup-imports": "node scripts/cleanup-imports.mjs",
+    "test:import-commit": "node scripts/test-import-commit.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "2.117.3",

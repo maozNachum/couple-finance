@@ -3,12 +3,21 @@ import { browserClient } from '@/shared/infrastructure/supabase-client';
 import { csvFailureSchema, authorizeImportSchema, uploadSchema, uploadListSchema, previewSchema, processImportSchema, type UploadRecord } from '@finance/contracts/import-preview';
 import { accountRecordsSchema } from '@finance/contracts/valuation';
 import { internalSafeError, safeErrorSchema } from '@finance/contracts/safe-error';
+import { importRequestSchema, importReviewSchema, importResultSchema } from '@finance/contracts/import-commit';
 const client=()=>{const c=browserClient();if(!c)throw internalSafeError();return c;};
 export async function loadImports(){
  const c=client();const user=await c.auth.getUser();if(user.error||!user.data.user)throw internalSafeError();
- const [a,u,h]=await Promise.all([c.from('accounts').select('payload').limit(1000),c.rpc('list_imports'),c.from('households').select('id,name,created_at').limit(1000)]);
- if(a.error||u.error||h.error||a.data.length>=1000||h.data.length>=1000)throw internalSafeError();
- return {households:householdListSchema.parse(h.data.map(r=>({id:r.id,name:r.name,createdAt:String(r.created_at).replace(/\+00:00$/,'Z')}))),accounts:accountRecordsSchema.parse(a.data.map(r=>r.payload)),uploads:uploadListSchema.parse(u.data)};
+ const [a,u,h,e]=await Promise.all([c.from('accounts').select('payload').limit(1000),c.rpc('list_imports'),c.from('households').select('id,name,created_at').limit(1000),c.rpc('import_evidence')]);
+ if(a.error||u.error||h.error||e.error||a.data.length>=1000||h.data.length>=1000)throw internalSafeError();
+ return {households:householdListSchema.parse(h.data.map(r=>({id:r.id,name:r.name,createdAt:String(r.created_at).replace(/\+00:00$/,'Z')}))),accounts:accountRecordsSchema.parse(a.data.map(r=>r.payload)),uploads:uploadListSchema.parse(u.data),evidence:importResultSchema.array().parse(e.data)};
+}
+export async function reviewImport(input:unknown){
+ const r=await client().functions.invoke('import-commit',{body:importRequestSchema.parse(input)});
+ if(r.error)throw internalSafeError();if(r.data?.ok!==true){const e=safeErrorSchema.safeParse(r.data?.error);throw e.success?e.data:internalSafeError();}return importReviewSchema.parse(r.data.review);
+}
+export async function commitImport(input:unknown){
+ const r=await client().functions.invoke('import-commit',{body:importRequestSchema.parse(input)});
+ if(r.error)throw internalSafeError();if(r.data?.ok!==true){const e=safeErrorSchema.safeParse(r.data?.error);throw e.success?e.data:internalSafeError();}return importResultSchema.parse(r.data.result);
 }
 export async function importCommand(action:'AUTHORIZE'|'CANCEL'|'FORGET',input:unknown){
  const payload=action==='AUTHORIZE'?{...authorizeImportSchema.parse(input),action}:{id:input,action};
