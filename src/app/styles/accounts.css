@@ -1,4 +1,9 @@
 .accounts-panel { display: grid; gap: 1.5rem; max-width: 54rem; margin-block: 2rem; }
+.dashboard-panel { max-width: 70rem; }
+.dashboard-panel section { display: grid; gap: .75rem; }
+.dashboard-metrics { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 1rem; }
+.dashboard-panel bdi { overflow-wrap: anywhere; }
+@media (max-width: 700px) { .dashboard-metrics { grid-template-columns: 1fr; } }
 .accounts-panel input, .accounts-panel select { display: block; width: 100%; min-width: 0; box-sizing: border-box; padding: .7rem; font: inherit; border: 1px solid #64776c; border-radius: .5rem; background: white; color: #20382c; }
 .accounts-panel button { padding: .7rem 1rem; font: inherit; color: white; background: #254d3d; border: 0; border-radius: .5rem; cursor: pointer; }
 .accounts-panel button:disabled { opacity: .65; cursor: wait; }

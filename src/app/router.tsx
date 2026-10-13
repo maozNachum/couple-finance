@@ -1,4 +1,5 @@
 import { CategoriesPage } from '@/pages/categories/CategoriesPage';
+import { DashboardPage } from '@/pages/dashboard/DashboardPage';
 import { ImportsPage } from '@/pages/imports/ImportsPage';
 import { ReconciliationPage } from '@/pages/reconciliation/ReconciliationPage';
 import { Route, Routes } from 'react-router-dom';
@@ -22,6 +23,7 @@ export function AppRoutes() {
         <Route path="auth/confirm" element={<ConfirmPage />} />
         <Route path="household" element={<HouseholdPage />} />
         <Route path="accounts" element={<AccountsPage />} />
+        <Route path="dashboard" element={<DashboardPage />} />
         <Route path="categories" element={<CategoriesPage />} />
         <Route path="imports" element={<ImportsPage />} />
         <Route path="reconciliation" element={<ReconciliationPage />} />
