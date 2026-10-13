@@ -30,7 +30,9 @@
     "@finance/contracts/reporting": "supabase/functions/_shared/core/contracts/reporting.ts",
     "@finance/domain/reporting": "supabase/functions/_shared/core/domain/reporting.ts",
     "@finance/contracts/budgets": "supabase/functions/_shared/core/contracts/budgets.ts",
-    "@finance/domain/budgets": "supabase/functions/_shared/core/domain/budgets.ts"
+    "@finance/domain/budgets": "supabase/functions/_shared/core/domain/budgets.ts",
+    "@finance/contracts/obligations": "supabase/functions/_shared/core/contracts/obligations.ts",
+    "@finance/domain/obligations": "supabase/functions/_shared/core/domain/obligations.ts"
   },
   "corePackages": [
     "zod",

@@ -35,3 +35,8 @@
 .budget-cards article { min-inline-size: 0; overflow-wrap: anywhere; padding: 1rem; }
 .budget-cards dl { display: grid; grid-template-columns: 1fr 1fr; gap: .5rem; }
 .budget-cards dd { margin: 0; }
+.obligations-panel fieldset { display: grid; gap: 1rem; min-inline-size: 0; border: 1px solid #ccd6ce; border-radius: .5rem; padding: 1rem; }
+.obligations-panel label { display: block; min-inline-size: 0; overflow-wrap: anywhere; }
+.obligations-panel input[type="checkbox"] { display: inline-block; width: auto; margin-inline-end: .5rem; }
+.obligations-panel article > button { margin-inline-end: .5rem; margin-block-start: .5rem; }
+.obligations-panel [role="group"] { display: grid; gap: .75rem; }

@@ -13,6 +13,7 @@ import { HouseholdPage } from '@/pages/household/HouseholdPage';
 import { AccountsPage } from '@/pages/accounts/AccountsPage';
 import { TransactionsPage } from '@/pages/transactions/TransactionsPage';
 import { BudgetsPage } from '@/pages/budgets/BudgetsPage';
+import { ObligationsPage } from '@/pages/obligations/ObligationsPage';
 
 export function AppRoutes() {
   return (
@@ -26,6 +27,7 @@ export function AppRoutes() {
         <Route path="accounts" element={<AccountsPage />} />
         <Route path="dashboard" element={<DashboardPage />} />
         <Route path="budgets" element={<BudgetsPage />} />
+        <Route path="obligations" element={<ObligationsPage />} />
         <Route path="categories" element={<CategoriesPage />} />
         <Route path="imports" element={<ImportsPage />} />
         <Route path="reconciliation" element={<ReconciliationPage />} />

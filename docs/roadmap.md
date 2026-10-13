@@ -14,8 +14,8 @@ Implement one bounded task per conversation. Each task must leave a working stat
 | 8 — complete, merged (PR #6; CI fix PR #7) | Idempotent import commit and duplicate review | ingestion |
 | 9 — reviewed and merged (PR #8) | Transfer/card/loan reconciliation | transaction reconciliation |
 | 10 — reviewed and merged (PR #9) | Dashboard and net worth | dashboard/reporting/core |
-| 11 — implemented, awaiting independent review | Monthly budgets | budgets/budgeting |
-| 12 | Recurring candidates and confirmed obligations | recurring/obligations |
+| 11 — reviewed and merged (PR #10) | Monthly budgets | budgets/budgeting |
+| 12 — implemented, awaiting independent review | Recurring candidates and confirmed obligations | recurring/obligations |
 | 13 | Forecast and safe-to-spend | forecasting/cashflow |
 | 14 | Deterministic insights and operations | insights/maintenance |
 | 15 | MVP acceptance, export and restore | E2E/security/operations |
