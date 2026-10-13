@@ -142,9 +142,9 @@ export function householdReport(rawSnapshot: ReportingSnapshot, rawRequest: Repo
   const conversions: {transactionId: string; allocationId: string; date: string; amount: ConvertedAmount}[] = [];
   const monthly = current.filter(r => r.entryKind === 'MOVEMENT' && r.transaction.status === 'POSTED' && r.transaction.transactionDate >= period.start && r.transaction.transactionDate < period.endExclusive).sort((a,b) => order(a.transaction.id,b.transaction.id));
   for (const r of monthly) for (const a of [...r.transaction.allocations].sort((a,b) => order(a.id,b.id))) {
-    if (a.categoryId === undefined) uncategorizedCount++;
     if (a.effect === 'UNCLASSIFIED') { unclassifiedCount++; monthlyIssues.push('UNCLASSIFIED'); warn('UNCLASSIFIED',r.transaction.accountId,r.transaction.id); continue; }
     if (a.effect !== 'INCOME' && a.effect !== 'EXPENSE') continue;
+    if (a.categoryId === undefined) uncategorizedCount++;
     recognizedCount++;
     const amount = reportingConversion(a.money,request.currency,r.transaction.transactionDate,request.householdId,snapshot.rates);
     conversions.push({transactionId:r.transaction.id,allocationId:a.id,date:r.transaction.transactionDate,amount});

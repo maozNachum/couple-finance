@@ -7,6 +7,7 @@ import type { TransactionRevision } from '@finance/contracts/ledger';
 import { reconciliationDecisionSchema } from '@finance/contracts/reconciliation';
 import { selectionFor } from '@finance/domain/reconciliation';
 import { fxRateSchema } from '@finance/contracts/fx';
+import { previewCategorization } from '@finance/domain/categorization';
 
 export const reportingCases: {name:string;run:()=>void}[] = [];
 const test = (name:string,run:()=>void) => reportingCases.push({name:`reporting: ${name}`,run});
@@ -29,6 +30,32 @@ function correction(old:TransactionRevision,n:number,amount:string=old.transacti
 }
 function cardDecision(pay:TransactionRevision,purchase:TransactionRevision,state='EXACT',version=1) {
   return reconciliationDecisionSchema.parse({householdId:id(1),id:id(900),version,action:version===1?'LINK':'REPLACE',kind:'CARD',reason:'Synthetic evidence',actorMemberId:id(2),recordedAt:'2026-10-13T00:00:00Z',participants:[{selection:selectionFor(pay,1,'PAYMENT','CARD'),revision:pay,sourceReference:null,importItemId:null,contentHash:null},{selection:selectionFor(purchase,1,'PURCHASE','CARD'),revision:purchase,sourceReference:null,importItemId:null,contentHash:null}],fx:null,state,difference:null,purchaseDifference:'0'});
+}
+for (const effect of ['EXPENSE','INCOME','TRANSFER','DEBT_PRINCIPAL','INVESTMENT_TRADE','ADJUSTMENT','UNCLASSIFIED']) {
+  test(`${effect} missing-category count matches categorization eligibility without changing finances`,()=>{
+    const rows=[opening(),revision(2,'-30',effect),revision(3,'10',effect)];
+    const s=snapshot(rows),before=JSON.stringify(s),r=report(s);
+    const eligible=effect==='EXPENSE'||effect==='INCOME';
+    equal(r.monthly.uncategorizedCount,eligible?2:0);
+    equal(r.monthly.unclassifiedCount,effect==='UNCLASSIFIED'?2:0);
+    for (const row of rows.slice(1)) {
+      // USER locks do not make an eligible missing category an ineligible effect.
+      equal(previewCategorization(row.transaction,row.transaction.allocations[0]!.id,{householdId:request.householdId,generation:0,categories:[],rules:[]}).state,eligible?'LOCKED':'INELIGIBLE');
+    }
+    equal(r.monthly.income?.amount,effect==='INCOME'?'-20':'0');
+    equal(r.monthly.consumption?.amount,effect==='EXPENSE'?'20':'0');
+    equal(r.monthly.difference?.amount??null,effect==='UNCLASSIFIED'?null:eligible?'-20':'0');
+    equal(r.netWorth.netWorth?.amount,'980');
+    equal(JSON.stringify(s),before);
+    if (eligible) {
+      const categorized=rows.map(row=>row.entryKind==='OPENING'?row:transactionRevisionSchema.parse({...row,transaction:{...row.transaction,allocations:row.transaction.allocations.map(a=>({...a,categoryId:id(990)}))}}));
+      const withCategories=report(snapshot(categorized));
+      equal(withCategories.monthly.uncategorizedCount,0);
+      equal({...r.monthly,uncategorizedCount:0},withCategories.monthly);
+      equal(r.netWorth,withCategories.netWorth);
+      equal(r.reconciliation,withCategories.reconciliation);
+    }
+  });
 }
 test('one stable identity counted once, duplicate input and fabricated completeness rejected',()=>{equal(report().netWorth.netWorth?.amount,'1000');rejects(()=>report(snapshot([opening()],[account(),account()])));rejects(()=>aggregatePositions([...report().positions,...report().positions],request.currency));equal(aggregatePositions([{...report().positions[0]!,amount:null}],request.currency).netWorth,null);});
 test('signed positions define assets and debt despite account type',()=>{const s=snapshot([opening(1,10,'500'),opening(2,11,'-200')],[account(10,{type:'LOAN'}),account(11,{type:'SAVINGS'})]);const r=report(s);equal(r.netWorth.assets?.amount,'500');equal(r.netWorth.liabilities?.amount,'-200');equal(r.netWorth.netWorth?.amount,'300');});
