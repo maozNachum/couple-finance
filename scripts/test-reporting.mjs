@@ -25,7 +25,23 @@ try {
  const counts=()=>localSql(`select json_build_array((select count(*) from finance.transaction_revisions where household_id='${uuid(f.households[0])}'),(select count(*) from finance.transaction_allocations where household_id='${uuid(f.households[0])}'),(select count(*) from finance.reconciliation_decisions where household_id='${uuid(f.households[0])}'),(select count(*) from private.transaction_audit where household_id='${uuid(f.households[0])}'));`);
  const before=counts();await read();await read();eq(counts(),before,'dashboard reads never modify history or audit');
  for(let n=0;n<1001;n++) await f.save(bank,'0.01','INCOME');
+ console.log('Reporting bulk scenario: reading all 1003 synthetic revisions without API pagination truncation.');
+ const started=performance.now();
  const large=await read();eq(large.snapshot.history.length,1003,'complete 1001+ history beyond Data API row limit');
+ console.log(`Reporting bulk snapshot: ${large.snapshot.history.length} revisions, ${Math.round(performance.now()-started)} ms.`);
+ for(let repeat=0;repeat<3;repeat++)eq(await read(),large,'repeated bulk snapshot retains exact complete evidence');
+ // Inspect work rather than asserting a machine-dependent duration. Claims stay
+ // on local psql stdin; only scalar plan metrics are emitted to CI logs.
+ const {data:{session:planSession}}=await f.a.auth.getSession();assert.ok(planSession);
+ const planClaims=JSON.parse(Buffer.from(planSession.access_token.split('.')[1],'base64url').toString());
+ const planText=localSql(`begin; set local role authenticated; set local request.jwt.claims=${sqlText(JSON.stringify({sub:planClaims.sub,role:'authenticated',session_id:planClaims.session_id,is_anonymous:false}))}; explain (analyze,format json) select jsonb_agg(payload order by revision_id) from api.transaction_history; rollback;`);
+ const plan=JSON.parse(planText.slice(planText.indexOf('[\n'),planText.lastIndexOf(']')+1))[0];
+ const initPlans=[];
+ const visit=node=>{if(node['Subplan Name']?.startsWith('InitPlan')&&node['Node Type']==='ProjectSet')initPlans.push(node);for(const child of node.Plans??[])visit(child);};
+ visit(plan.Plan);
+ eq(initPlans.length,3,'all three protected ledger relations initialize authorization once');
+ for(const node of initPlans)eq(node['Actual Loops'],1,'live authorization is not repeated for every financial row');
+ console.log(`Reporting authorization: ${initPlans.length} one-time plans; ${Math.round(plan['Execution Time'])} ms synthetic history projection.`);
  eq(large.snapshot.size,Object.entries(large.snapshot).filter(([k])=>k!=='size').reduce((n,[,v])=>n+v.length,0),'exact size matches all arrays');
  localSql(`update finance.household_members set status='REVOKED' where household_id='${uuid(f.households[0])}';`);
  const revoked=await read();for(const key of ['households','members','accounts','history','observations','decisions','rates'])eq(revoked.snapshot[key].length,0,`revoked unchanged JWT hides ${key}`);

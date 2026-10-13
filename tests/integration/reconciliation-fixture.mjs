@@ -8,7 +8,7 @@ export async function reconciliationFixture(){
  const client=()=>createClient(status.API_URL,status.ANON_KEY,{db:{schema:'api'},auth:{persistSession:false,autoRefreshToken:false}});
  const a=client(),b=client(),anon=client();
  for(const [c,u] of [[a,fixture.users[0]],[b,fixture.users[1]]])assert.equal((await c.auth.verifyOtp({token_hash:u.hash,type:'invite'})).error,null);
- async function rpc(c,name,payload){const r=await c.rpc(name,payload===undefined?undefined:{payload});assert.equal(r.error,null,'RPC transport');return r.data;}
+ async function rpc(c,name,payload){const r=await c.rpc(name,payload===undefined?undefined:{payload});assert.equal(r.error,null,`RPC transport: ${name}`);return r.data;}
  async function account(type='BANK',currency='ILS',c=a,h=fixture.households[0]){
   const record={account:{id:randomUUID(),householdId:h,name:`Synthetic ${type} ${currency}`,ownership:{kind:'HOUSEHOLD'},type,currency,valuationCurrency:currency,balancePolicy:'LEDGER',status:'ACTIVE'},version:1,manualSourceId:randomUUID()};
   assert.equal((await rpc(c,'create_account',record)).ok,true);return record;
