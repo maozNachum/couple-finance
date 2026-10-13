@@ -20,3 +20,9 @@
 
 .import-choice { display: flex; align-items: flex-start; gap: .5rem; }
 .import-choice input[type="checkbox"] { width: auto; flex: 0 0 auto; margin-block-start: .25rem; }
+
+.reconciliation-panel fieldset { display: grid; gap: 1rem; min-inline-size: 0; border: 1px solid #ccd6ce; border-radius: .5rem; padding: 1rem; }
+.reconciliation-panel label { display: block; min-inline-size: 0; overflow-wrap: anywhere; }
+.reconciliation-panel textarea { display: block; width: 100%; min-height: 5rem; box-sizing: border-box; font: inherit; padding: .7rem; border: 1px solid #64776c; border-radius: .5rem; }
+.reconciliation-panel input[type="checkbox"] { display: inline-block; width: auto; margin-inline-end: .5rem; }
+.reconciliation-panel li, .reconciliation-panel bdi { overflow-wrap: anywhere; }

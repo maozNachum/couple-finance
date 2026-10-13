@@ -1,5 +1,6 @@
 import { CategoriesPage } from '@/pages/categories/CategoriesPage';
 import { ImportsPage } from '@/pages/imports/ImportsPage';
+import { ReconciliationPage } from '@/pages/reconciliation/ReconciliationPage';
 import { Route, Routes } from 'react-router-dom';
 import { AppLayout } from '@/shared/layout/AppLayout';
 import { HomePage } from '@/pages/home/HomePage';
@@ -23,6 +24,7 @@ export function AppRoutes() {
         <Route path="accounts" element={<AccountsPage />} />
         <Route path="categories" element={<CategoriesPage />} />
         <Route path="imports" element={<ImportsPage />} />
+        <Route path="reconciliation" element={<ReconciliationPage />} />
         <Route path="transactions" element={<TransactionsPage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Route>
