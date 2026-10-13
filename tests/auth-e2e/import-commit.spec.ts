@@ -20,13 +20,28 @@ for(const recovery of ['retry','sign-out','revocation'] as const) test(`explicit
   await expect(review.getByLabel('לכלול רשומה 4')).toBeDisabled();await expect(review.getByLabel('לכלול רשומה 5')).toBeDisabled();await expect(review.getByLabel('לכלול רשומה 2')).not.toBeChecked();
   await review.getByLabel('לכלול רשומה 2').check();await expect(review.getByRole('button',{name:'בדיקת סיכום לפני שמירה'})).toBeDisabled();await review.getByLabel('בדקתי את האזהרה ברשומה 2; זו תנועה נפרדת שיש לשמור').check();await review.getByLabel('משמעות רשומה 2').selectOption('EXPENSE');
   await review.getByLabel('לכלול רשומה 3').check();await review.getByLabel('בדקתי את האזהרה ברשומה 3; זו תנועה נפרדת שיש לשמור').check();await review.getByLabel('מצב רשומה 3').selectOption('PENDING');
-  let lost=false;const commands:unknown[]=[];await page.route('**/functions/v1/import-commit',async route=>{if(route.request().postDataJSON().action==='COMMIT')commands.push(route.request().postDataJSON());if(!lost&&route.request().postDataJSON().action==='COMMIT'){lost=true;await route.fetch();await route.abort('failed');}else await route.continue();});
+  let releaseResponse=()=>{},serverCommitted=()=>{};
+  const responseGate=new Promise<void>(resolve=>{releaseResponse=resolve;}),committed=new Promise<void>(resolve=>{serverCommitted=resolve;});
+  let lost=false;const commands:unknown[]=[];await page.route('**/functions/v1/import-commit',async route=>{if(route.request().postDataJSON().action==='COMMIT')commands.push(route.request().postDataJSON());if(!lost&&route.request().postDataJSON().action==='COMMIT'){lost=true;await route.fetch();serverCommitted();await responseGate;await route.abort('failed');}else await route.continue();});
   await review.getByRole('button',{name:'בדיקת סיכום לפני שמירה'}).click();await expect(review.getByRole('heading',{name:'שמירת 2 תנועות כספיות'})).toBeVisible();await review.getByRole('button',{name:'אישור ושמירת יבוא'}).click();await expect(review.getByRole('button',{name:'בדיקת תוצאה וניסיון חוזר של אותה בקשה'})).toBeVisible();await expect(review.getByRole('heading',{name:'היבוא נשמר ואושר בשרת'})).toHaveCount(0);
+  const retry=review.getByRole('button',{name:'בדיקת תוצאה וניסיון חוזר של אותה בקשה'});
+  await test.step('focus during a committed request with its response still pending',async()=>{
+   try{
+    await committed;expect(localSql(`select count(*) from finance.transactions where household_id='${h}'`)).toBe('2');
+    await expect(retry).toBeDisabled();await page.evaluate(()=>window.dispatchEvent(new Event('focus')));await expect(retry).toBeDisabled();expect(commands).toHaveLength(1);
+   }finally{releaseResponse();}
+  });
+  // Visibility only means a command exists; enabled means the lost response has settled.
+  // Focus revalidation deliberately skips commands that are still in flight.
+  await expect(retry).toBeEnabled();
   // Real second tab plus deterministic focus notification for headless/mobile emulation.
   const other=await context.newPage();await other.goto('about:blank');await other.bringToFront();
-  const access=page.waitForResponse(response=>response.url().includes('/rest/v1/rpc/import_evidence')&&response.ok());
-  await page.bringToFront();await page.evaluate(()=>window.dispatchEvent(new Event('focus')));await access;await other.close();
-  const retry=review.getByRole('button',{name:'בדיקת תוצאה וניסיון חוזר של אותה בקשה'});await expect(retry).toBeEnabled();await expect(review.getByLabel('לכלול רשומה 2')).toBeChecked();expect(commands).toHaveLength(1);
+  await test.step('focus revalidation after the lost response has settled',async()=>{
+   const access=page.waitForResponse(response=>response.url().includes('/rest/v1/rpc/import_evidence')&&response.ok());
+   await page.bringToFront();await page.evaluate(()=>window.dispatchEvent(new Event('focus')));await access;
+   await expect(retry).toBeEnabled();
+  });await other.close();
+  await expect(retry).toBeEnabled();await expect(review.getByLabel('לכלול רשומה 2')).toBeChecked();expect(commands).toHaveLength(1);
   expect(await page.evaluate(async()=>({local:localStorage.length,session:sessionStorage.length,databases:(await indexedDB.databases()).length}))).toEqual({local:0,session:0,databases:0});
   if(recovery==='sign-out'){
    // Sign out through the existing household screen in another authenticated tab.
@@ -38,7 +53,9 @@ for(const recovery of ['retry','sign-out','revocation'] as const) test(`explicit
   }
   if(recovery==='revocation'){
    localSql(`update finance.household_members set status='REVOKED' where household_id='${h}'`);
-   const revokedAccess=page.waitForResponse(response=>response.url().includes('/rest/v1/rpc/import_evidence')&&response.ok());await page.evaluate(()=>window.dispatchEvent(new Event('focus')));await revokedAccess;
+   await test.step('focus revalidation after confirmed membership revocation',async()=>{
+    const revokedAccess=page.waitForResponse(response=>response.url().includes('/rest/v1/rpc/import_evidence')&&response.ok());await page.evaluate(()=>window.dispatchEvent(new Event('focus')));await revokedAccess;
+   });
    await expect(review).toHaveCount(0);await expect(page.getByRole('button',{name:'בדיקת תוצאה וניסיון חוזר של אותה בקשה'})).toHaveCount(0);await expect(page.getByText('תנועה נפרדת',{exact:true})).toHaveCount(0);await expect(page.getByText('Synthetic import account',{exact:true})).toHaveCount(0);expect(commands).toHaveLength(1);return;
   }
   expect(localSql(`select count(*) from finance.transactions where household_id='${h}'`)).toBe('2');await expect(review.getByLabel('לכלול רשומה 2')).toBeDisabled();await review.getByRole('button',{name:'בדיקת תוצאה וניסיון חוזר של אותה בקשה'}).click();await expect(review.getByRole('heading',{name:'היבוא נשמר ואושר בשרת'})).toBeVisible();await expect(review.getByText('נשמרו 2 · דולגו 0 · שגויות 1 · חסרות מידע 1')).toBeVisible();
