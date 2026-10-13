@@ -12,6 +12,7 @@ import { ConfirmPage } from '@/pages/confirm/ConfirmPage';
 import { HouseholdPage } from '@/pages/household/HouseholdPage';
 import { AccountsPage } from '@/pages/accounts/AccountsPage';
 import { TransactionsPage } from '@/pages/transactions/TransactionsPage';
+import { BudgetsPage } from '@/pages/budgets/BudgetsPage';
 
 export function AppRoutes() {
   return (
@@ -24,6 +25,7 @@ export function AppRoutes() {
         <Route path="household" element={<HouseholdPage />} />
         <Route path="accounts" element={<AccountsPage />} />
         <Route path="dashboard" element={<DashboardPage />} />
+        <Route path="budgets" element={<BudgetsPage />} />
         <Route path="categories" element={<CategoriesPage />} />
         <Route path="imports" element={<ImportsPage />} />
         <Route path="reconciliation" element={<ReconciliationPage />} />

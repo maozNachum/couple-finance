@@ -1,6 +1,7 @@
 import { importCases } from './import-cases.ts';
 import { reconciliationCases } from './reconciliation-cases.ts';
 import { reportingCases } from './reporting-cases.ts';
+import { budgetCases } from './budget-cases.ts';
 import { categorizationCases } from './categorization-cases.ts';
 import { decimal, decimalStringSchema, add, subtract, multiply, divide, compare, absolute, negate, isZero, isPositive, isNegative, roundDecimal, sumDecimals } from '@finance/domain/money/decimal';
 import { moneySchema } from '@finance/contracts/money';
@@ -24,7 +25,7 @@ import { ledgerCases } from './ledger-cases.ts';
 
 // One assertion corpus runs unchanged in Vitest/jsdom, permission-free Deno,
 // and an actual production-bundled browser under four runtime timezones.
-export const coreCases: { name: string; run: () => void }[] = [...ledgerCases, ...categorizationCases, ...importCases, ...reconciliationCases, ...reportingCases];
+export const coreCases: { name: string; run: () => void }[] = [...ledgerCases, ...categorizationCases, ...importCases, ...reconciliationCases, ...reportingCases, ...budgetCases];
 function test(name: string, run: () => void): void { coreCases.push({ name, run }); }
 function equal(actual: unknown, expected: unknown): void {
   if (JSON.stringify(actual) !== JSON.stringify(expected)) throw new Error(`Expected ${JSON.stringify(expected)}, received ${JSON.stringify(actual)}`);

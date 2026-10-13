@@ -1,0 +1,65 @@
+import assert from 'node:assert/strict';
+import { randomUUID } from 'node:crypto';
+import { budgetFixture } from '../tests/integration/budget-fixture.mjs';
+import { localAdmin,localSql,sqlText,uuid } from './local-supabase.mjs';
+const f=await budgetFixture();let checks=0;
+const eq=(a,b,label)=>{assert.deepEqual(a,b,label);checks++;};
+const save=c=>f.rpc(f.a,'save_budget',c),read=(client=f.a)=>f.rpc(client,'budget_snapshot');
+const h=uuid(f.households[0]);
+try {
+ const bank=await f.account();await f.opening(bank);await f.save(bank,'-30','EXPENSE');
+ const food=await f.category(),other=await f.category({name:'תחבורה סינתטית'}),income=await f.category({name:'הכנסה סינתטית',kind:'INCOME'});
+ const foreign=await f.category({householdId:f.households[1]},f.b);
+ const member=JSON.parse(localSql(`select json_agg(id) from finance.household_members where household_id='${h}';`))[0];
+ const foreignMember=JSON.parse(localSql(`select json_agg(id) from finance.household_members where household_id='${uuid(f.households[1])}';`))[0];
+ const evidence=()=>localSql(`select json_build_array((select jsonb_agg(to_jsonb(t) order by revision_id) from finance.transaction_revisions t where household_id='${h}'),(select jsonb_agg(to_jsonb(t) order by id) from finance.transaction_allocations t where household_id='${h}'),(select count(*) from finance.balance_observations where household_id='${h}'),(select count(*) from finance.fx_evidence where household_id='${h}'),(select count(*) from finance.reconciliation_decisions where household_id='${h}'),(select count(*) from private.transaction_audit where household_id='${h}'));`);
+ const original=evidence();const c=f.command();
+ const retries=await Promise.all([save(c),save(c),save(c)]);eq(retries.every(r=>r.ok&&r.version===1),true,'parallel identical retries one plan');
+ eq((await save({...c,planned:{amount:'101',currency:'ILS'}})).error.code,'CONFLICT','changed full payload conflicts');
+ eq((await save(f.command())).error.code,'CONFLICT','TOTAL duplicate rejected');
+ const cat=f.command({scope:{kind:'ALL',memberId:null,categoryId:food.id}});eq((await save(cat)).ok,true,'category child with TOTAL accepted');
+ eq((await save(f.command({scope:{kind:'SHARED',memberId:null,categoryId:food.id}}))).error.code,'CONFLICT','intersecting ALL and SHARED rejected');
+ eq((await save(f.command({scope:{kind:'MEMBER',memberId:member,categoryId:food.id}}))).error.code,'CONFLICT','intersecting ALL and MEMBER rejected');
+ eq((await save(f.command({scope:{kind:'SHARED',memberId:null,categoryId:null}}))).error.code,'CONFLICT','whole shared overlaps category child');
+ eq((await save(f.command({scope:{kind:'ALL',memberId:null,categoryId:other.id},planned:{amount:'9',currency:'USD'}}))).error.code,'CONFLICT','month currency mixed rejected');
+ eq((await save(f.command({scope:{kind:'MEMBER',memberId:foreignMember,categoryId:null}}))).error.code,'INVALID_INPUT','cross-household owner denied');
+ for(const categoryId of [foreign.id,income.id,randomUUID()])eq((await save(f.command({scope:{kind:'ALL',memberId:null,categoryId}}))).error.code,'INVALID_INPUT','foreign/ineligible category denied');
+ const change={...c,action:'EDIT',expectedVersion:1,idempotencyKey:randomUUID(),planned:{amount:'70.00000001',currency:'ILS'}};
+ const concurrent=await Promise.all([save(change),save({...change,idempotencyKey:randomUUID(),planned:{amount:'80',currency:'ILS'}})]);
+ eq(concurrent.filter(r=>r.ok).length,1,'only one concurrent edit succeeds');eq(concurrent.filter(r=>r.error?.code==='CONFLICT').length,1,'loser conflict');
+ const snap=await read(),head=snap.snapshot.revisions.find(r=>r.id===c.id&&r.version===2);
+ eq(snap.ok,true,'coherent snapshot');eq(snap.snapshot.revisions.filter(r=>r.id===c.id).length,2,'history retained');eq(snap.snapshot.size,snap.snapshot.categories.length+snap.snapshot.revisions.length,'explicit count');
+ eq((await save(c)).version,1,'old exact retry remains original result');
+ eq((await read(f.b)).snapshot.revisions.length,0,'separate household plans hidden');
+ eq((await f.anon.rpc('save_budget',{payload:c})).error.code,'42501','anonymous command denied');eq((await f.anon.rpc('budget_snapshot')).error.code,'42501','anonymous read denied');
+ eq((await f.rpc(f.b,'save_budget',c)).error.code,'NOT_AUTHORIZED','forged household command');
+ const renamed=await f.category({...food,version:2,name:'אוכל מתוקן'});eq(renamed.id,food.id,'stable category');
+ const revised={...cat,action:'EDIT',expectedVersion:1,idempotencyKey:randomUUID(),planned:{amount:'0',currency:'ILS'}};
+ eq((await save(revised)).ok,true,'edit explicit zero after rename');
+ const hist=(await read()).snapshot.revisions.filter(r=>r.id===cat.id);eq(hist.map(r=>r.category.name),['מזון סינתטי','אוכל מתוקן'],'historical category labels retained');
+ await f.category({...renamed,version:3,status:'ARCHIVED'});
+ eq((await save({...revised,expectedVersion:2,idempotencyKey:randomUUID()})).ok,true,'existing category plan can edit after category archive');
+ const archive={...cat,action:'ARCHIVE',expectedVersion:3,idempotencyKey:randomUUID(),planned:{amount:'0',currency:'ILS'}};
+ eq((await save(archive)).version,4,'archive revision');eq((await save(archive)).version,4,'archive retry idempotent');
+ eq((await save(f.command({scope:cat.scope}))).error.code,'INVALID_INPUT','archived category new scope denied');
+ const shared=f.command({scope:{kind:'SHARED',memberId:null,categoryId:null}}),individual=f.command({scope:{kind:'MEMBER',memberId:member,categoryId:null}});
+ eq((await save(shared)).ok,true,'shared disjoint after archive');eq((await save(individual)).ok,true,'member distinct from shared');
+ eq((await save(f.command({scope:shared.scope}))).error.code,'CONFLICT','duplicate shared scope rejected');
+ eq((await save({...c,action:'EDIT',expectedVersion:2,idempotencyKey:randomUUID(),month:'2026-11'})).error.code,'INVALID_INPUT','month immutable');
+ for(const amount of ['-1','1.000000000','10000000000000000'])eq((await save(f.command({month:'2026-11',planned:{amount,currency:'ILS'}}))).error.code,'INVALID_INPUT','precision and sign invalid');
+ // A late audit failure must roll back head, revision and receipt together.
+ localSql(`create function private.budget_test_failure() returns trigger language plpgsql as $$begin if new.household_id='${h}' then raise exception 'synthetic late failure'; end if; return new; end$$; create trigger budget_test_failure before insert on private.budget_audit for each row execute function private.budget_test_failure();`);
+ const late=f.command({month:'2026-12'});
+ try {eq((await save(late)).error.code,'INTERNAL_ERROR','late failure safe response');eq(localSql(`select count(*) from finance.budgets where id='${uuid(late.id)}';`),'0','late failure rolls back plan');eq(localSql(`select count(*) from private.budget_receipts where household_id='${h}' and idempotency_key=${sqlText(late.idempotencyKey)};`),'0','late failure rolls back receipt');}
+ finally{localSql('drop trigger budget_test_failure on private.budget_audit; drop function private.budget_test_failure();');}
+ eq((await save(late)).ok,true,'same command safe retry after rollback');eq(evidence(),original,'all budget writes leave financial evidence and audit unchanged');
+ eq((await save({...c,action:'ARCHIVE',expectedVersion:2,idempotencyKey:randomUUID(),planned:head.planned})).ok,true,'parent archive retains children');
+ localSql(`update finance.household_members set status='REVOKED' where household_id='${h}';`);
+ eq((await save(c)).error.code,'NOT_AUTHORIZED','unchanged revoked JWT cannot replay');
+ const revoked=(await read()).snapshot;for(const key of ['revisions','categories'])eq(revoked[key].length,0,'revoked protected history hidden');eq(revoked.reporting.households.length,0,'revoked household empty');
+ const {data:{session}}=await f.a.auth.getSession();const sessionId=JSON.parse(Buffer.from(session.access_token.split('.')[1],'base64url').toString()).session_id;
+ localSql(`delete from auth.sessions where id='${uuid(sessionId)}';`);eq((await read()).error.code,'NOT_AUTHORIZED','deleted session read denied');eq((await save(c)).error.code,'NOT_AUTHORIZED','deleted session command denied');
+ await localAdmin().auth.admin.deleteUser(f.users[0].id);eq((await save(c)).error.code,'NOT_AUTHORIZED','deleted user command denied');
+ eq(localSql(`select count(*)>0 from finance.budget_revisions where household_id='${h}';`),'t','durable author deletion history');
+ console.log(`Budgets API: ${checks} assertions passed.`);
+}finally{await f.cleanup();}

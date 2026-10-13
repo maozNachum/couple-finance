@@ -8,6 +8,7 @@ import { financialDateSchema } from '../contracts/financial-date.ts';
 import { householdIdSchema } from '../contracts/identity.ts';
 import { fxRateSchema } from '../contracts/fx.ts';
 import type { TransactionRevision } from '../contracts/ledger.ts';
+import type { Ownership } from '../contracts/ownership.ts';
 import { currentTransactions, ledgerBalance } from './money/ledger.ts';
 import { valueAccount } from './money/valuation.ts';
 import { convertMoney } from './money/fx.ts';
@@ -140,6 +141,7 @@ export function householdReport(rawSnapshot: ReportingSnapshot, rawRequest: Repo
   let income = zero(request.currency), consumption = zero(request.currency), recognizedCount = 0, unclassifiedCount = 0, uncategorizedCount = 0, missingFxCount = 0;
   let incomeConverted = 0, expenseConverted = 0, incomeMissing = 0, expenseMissing = 0;
   const conversions: {transactionId: string; allocationId: string; date: string; amount: ConvertedAmount}[] = [];
+  const expenses: {transactionId:string; allocationId:string; date:string; categoryId:string|null; ownership:Ownership; amount:ConvertedAmount}[] = [];
   const monthly = current.filter(r => r.entryKind === 'MOVEMENT' && r.transaction.status === 'POSTED' && r.transaction.transactionDate >= period.start && r.transaction.transactionDate < period.endExclusive).sort((a,b) => order(a.transaction.id,b.transaction.id));
   for (const r of monthly) for (const a of [...r.transaction.allocations].sort((a,b) => order(a.id,b.id))) {
     if (a.effect === 'UNCLASSIFIED') { unclassifiedCount++; monthlyIssues.push('UNCLASSIFIED'); warn('UNCLASSIFIED',r.transaction.accountId,r.transaction.id); continue; }
@@ -148,6 +150,8 @@ export function householdReport(rawSnapshot: ReportingSnapshot, rawRequest: Repo
     recognizedCount++;
     const amount = reportingConversion(a.money,request.currency,r.transaction.transactionDate,request.householdId,snapshot.rates);
     conversions.push({transactionId:r.transaction.id,allocationId:a.id,date:r.transaction.transactionDate,amount});
+    if (a.effect === 'EXPENSE') expenses.push({transactionId:r.transaction.id,allocationId:a.id,date:r.transaction.transactionDate,categoryId:a.categoryId ?? null,ownership:a.ownership,
+      amount:{...amount,original:moneySchema.parse({...amount.original,amount:negate(amount.original.amount)}),money:amount.money ? moneySchema.parse({...amount.money,amount:negate(amount.money.amount)}) : null}});
     if (!amount.money) { missingFxCount++; if (a.effect === 'INCOME') incomeMissing++; else expenseMissing++; monthlyIssues.push(amount.reason!); warn(amount.reason!,r.transaction.accountId,r.transaction.id); continue; }
     if (a.effect === 'INCOME') { incomeConverted++; income = addMoney(income,amount.money); }
     else { expenseConverted++; consumption = addMoney(consumption,moneySchema.parse({...amount.money,amount:negate(amount.money.amount)})); }
@@ -177,5 +181,5 @@ export function householdReport(rawSnapshot: ReportingSnapshot, rawRequest: Repo
   const complete = monthlyIssues.length === 0 && accounts.length > 0;
   return {request,period,positions,netWorth,ownership,
     monthly:{coverage:complete?'COMPLETE' as const:accounts.length?'PARTIAL' as const:'UNAVAILABLE' as const,income:accounts.length && (!incomeMissing || incomeConverted) ? income : null,consumption:accounts.length && (!expenseMissing || expenseConverted) ? consumption : null,difference:complete?subtractMoney(income,consumption):null,recognizedCount,unclassifiedCount,uncategorizedCount,missingFxCount,conversions,issues:[...new Set(monthlyIssues)].sort(order)},
-    reconciliation,warnings:warnings.sort((a,b) => order(JSON.stringify(a),JSON.stringify(b))),snapshotSize:snapshot.size};
+    expenses,reconciliation,warnings:warnings.sort((a,b) => order(JSON.stringify(a),JSON.stringify(b))),snapshotSize:snapshot.size};
 }

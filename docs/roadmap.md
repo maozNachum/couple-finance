@@ -13,8 +13,8 @@ Implement one bounded task per conversation. Each task must leave a working stat
 | 7 — complete, merged | CSV mapping, upload isolation and preview | imports and CSV adapter |
 | 8 — complete, merged (PR #6; CI fix PR #7) | Idempotent import commit and duplicate review | ingestion |
 | 9 — reviewed and merged (PR #8) | Transfer/card/loan reconciliation | transaction reconciliation |
-| 10 — implemented, awaiting independent review | Dashboard and net worth | dashboard/reporting/core |
-| 11 | Monthly budgets | budgets/budgeting |
+| 10 — reviewed and merged (PR #9) | Dashboard and net worth | dashboard/reporting/core |
+| 11 — implemented, awaiting independent review | Monthly budgets | budgets/budgeting |
 | 12 | Recurring candidates and confirmed obligations | recurring/obligations |
 | 13 | Forecast and safe-to-spend | forecasting/cashflow |
 | 14 | Deterministic insights and operations | insights/maintenance |
@@ -41,4 +41,6 @@ Task 6 / PR #4 and Task 7 / PR #5 were reviewed and merged. Task 7 delivery is i
 
 Task 9 delivery is in [its report](task-9-report.md), with durable relationships and separate financial-correction boundaries in [its decisions](task-9-decisions.md). Task 10 dashboard/net-worth work requires independent Task 9 review/merge and successful exact post-merge master CI, then the [prepared prompt](task-10-prompt.md).
 
-Task 10 financial reporting policy and limitations are in [its decisions](task-10-decisions.md). Task 11 remains a separate monthly budgeting task after independent review, merge and exact master CI; see [prepared Task 11 prompt](task-11-prompt.md).
+Task 10 financial reporting policy and limitations are in [its decisions](task-10-decisions.md). PR #9 was independently reviewed/merged and exact master CI passed before implementing Task 11 from [its approved prompt](task-11-prompt.md).
+
+Task 11 scope, overlap hierarchy, currency and incomplete-result policies are in [its decisions](task-11-decisions.md). Task 12 requires a separate request after independent Task 11 review/merge and successful exact master CI; see [prepared Task 12 prompt](task-12-prompt.md). No recurring engine or forecasting is part of Task 11.
