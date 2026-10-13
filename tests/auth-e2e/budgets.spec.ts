@@ -16,7 +16,7 @@ test('monthly plan create/edit/zero/history/archive with RTL and accessible cont
  try{
   const bank=await f.account();await f.opening(bank);await f.save(bank,'-30','EXPENSE');await f.save(bank,'5','EXPENSE');
   await login(page,f);await expect(page.getByText('לא הוגדרה תוכנית פעילה לחודש זה.',{exact:false})).toBeVisible();
-  await page.getByRole('button',{name:'הוספת תוכנית',exact:true}).click();await page.getByLabel('סכום מתוכנן').fill('100');await page.getByRole('button',{name:'שמירת תוכנית',exact:true}).click();
+  await page.getByRole('button',{name:'הוספת תוכנית',exact:true}).click();await page.getByLabel('סכום מתוכנן').fill('100');await page.getByLabel('סכום מתוכנן').press('Enter');
   await expect(total(page)).toContainText('75.00 ILS');await expect(total(page)).toContainText('25%');
   await expect(total(page)).toContainText('בתוך התכנון לפי הראיות הרשומות');
   await total(page).getByRole('button',{name:'עריכת סכום'}).click();await page.getByLabel('סכום מתוכנן').fill('0');await page.getByRole('button',{name:'שמירת תוכנית',exact:true}).click();
@@ -43,7 +43,7 @@ test('category uncertainty, overlap conflicts, missing FX and card expenses stay
   await expect(total(page)).toContainText('חסר שער היסטורי');await expect(total(page)).toContainText('עלול לספור צריכה פעמיים');
   await expect(page.getByRole('article',{name:`כל הבית — ${food.name}`})).toContainText('הוצאות ללא קטגוריה');
   await expect(page.getByText('בתוך התכנון לפי הראיות הרשומות',{exact:true})).toHaveCount(0);
-  await page.getByRole('button',{name:'הוספת תוכנית',exact:true}).click();await page.getByLabel('סכום מתוכנן').fill('200');await page.getByRole('button',{name:'שמירת תוכנית',exact:true}).click();
+  await page.getByRole('button',{name:'הוספת תוכנית',exact:true}).click();await page.getByLabel('תחום התוכנית').selectOption('SHARED');await page.getByRole('combobox',{name:'קטגוריה',exact:true}).selectOption(food.id);await page.getByLabel('סכום מתוכנן').fill('200');await page.getByRole('button',{name:'שמירת תוכנית',exact:true}).click();
   await expect(page.getByRole('status').filter({hasText:'חופפת לתוכנית קיימת'})).toBeVisible();await expect(total(page)).toContainText('100.00 ILS');
  }finally{await f.cleanup();}
 });
