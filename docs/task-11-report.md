@@ -53,3 +53,9 @@ Completeness is over registered canonical evidence, not external statement certi
 Current corrected knowledge is used for historical actuals; this is not a recorded-time report freeze. Plan decisions themselves are retained immutably. Archives are terminal. Snapshots near configured bounds may require future measured scaling and a reviewed complete-history retrieval protocol. Browser verification covers Chromium desktop/mobile emulation, not all engines/physical devices. Production hosting, backups and live integrations remain separately authorized work.
 
 The [Task 12 prompt](task-12-prompt.md) prepares recurring candidates and explicitly confirmed obligations only. No Task 12 code exists. Stop after Task 11; wait for independent review before any merge. Exact feature-head push/PR CI evidence is recorded on the PR and in the delivery response after publication, independently of local results.
+
+## Published remote evidence
+
+[PR #10](https://github.com/maozNachum/couple-finance/pull/10) targets master and remains open for independent review. Implementation commit `88e48c5f61eb893e6ac19f39d9be7ed953046e5c` has exact Foundation checks [push 38401631744](https://github.com/maozNachum/couple-finance/actions/runs/38401631744) and [pull request 38401665960](https://github.com/maozNachum/couple-finance/actions/runs/38401665960). These are actual remote runs, not inferred local success; completion conclusions are recorded in the PR description/delivery response after checking GitHub. This subsequent documentation-only commit records publication evidence; [final head checks](https://github.com/maozNachum/couple-finance/pull/10/checks) remain authoritative.
+
+Final delivery scan reviewed 34 staged paths and two production browser assets without excluded references or local server-secret matches. Fixture cleanup returned Auth users, households and budgets to zero. Git whitespace checks passed. No automatic merge or deployment occurred.
