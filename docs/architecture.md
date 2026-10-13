@@ -1,5 +1,7 @@
 # Architecture and placement
 
+Task 13 adds the `/forecast` feature and two exact ES-only forecast aliases. A read-only forecast consumes the unchanged bounded Task 12 snapshot; canonical `reportingPosition` is extracted without changing reporting semantics, so cash calculations do not depend on unrelated net-worth/monthly totals. Pure core owns accessibility, bounded daily events, deduplication, uncertainty and minimum-minus-buffer. Browser choices and buffer stay in memory; there is no new financial/planning writer. See [Task 13 decisions](task-13-decisions.md).
+
 Task 12 adds `/obligations` and exact ES-only obligation contract/domain aliases. The bounded invoker snapshot nests the Task 10 financial graph; its context validator is reused. Pure monthly hypotheses, version-window calendar generation and explicit actual evidence stay separate. A narrow private planning command writes only obligation/rejection/link decisions, exclusive claims, receipts and minimal audit; no financial or budget writer is called. See [Task 12 decisions](task-12-decisions.md).
 
 Task 11 adds `/budgets`, exact ES-only budget contract/domain aliases and a coherent bounded invoker snapshot nesting Task 10 reporting with category heads and immutable plan revisions. Task 10's existing expense loop exposes conversion/ownership/category details; budget core consumes them and monthly coverage. One narrow private planning command changes only plans, receipts and minimal audit. See [budget decisions](task-11-decisions.md).

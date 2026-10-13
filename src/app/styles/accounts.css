@@ -14,6 +14,10 @@
 .observation-history li { padding-block: .8rem; border-block-end: 1px solid #ccd6ce; }
 .accounts-panel .identity-form { margin-block: 1rem; }
 .accounts-panel small { display: block; }
+.forecast-panel .table-scroll { max-inline-size: 100%; overflow-x: auto; }
+.forecast-panel table { inline-size: 100%; border-collapse: collapse; }
+.forecast-panel th, .forecast-panel td { padding: .6rem; text-align: start; border-block-end: 1px solid #ccd6ce; }
+.forecast-panel caption { text-align: start; margin-block-end: .75rem; }
 .transaction-form fieldset { display: grid; gap: 1rem; min-inline-size: 0; margin-block: .75rem; border: 1px solid #ccd6ce; border-radius: .5rem; padding: 1rem; }
 .transaction-form legend { padding-inline: .4rem; }
 .transaction-form label { min-width: 0; }

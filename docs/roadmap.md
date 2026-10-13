@@ -15,8 +15,8 @@ Implement one bounded task per conversation. Each task must leave a working stat
 | 9 — reviewed and merged (PR #8) | Transfer/card/loan reconciliation | transaction reconciliation |
 | 10 — reviewed and merged (PR #9) | Dashboard and net worth | dashboard/reporting/core |
 | 11 — reviewed and merged (PR #10) | Monthly budgets | budgets/budgeting |
-| 12 — implemented, awaiting independent review | Recurring candidates and confirmed obligations | recurring/obligations |
-| 13 | Forecast and safe-to-spend | forecasting/cashflow |
+| 12 — reviewed and merged (PR #11) | Recurring candidates and confirmed obligations | recurring/obligations |
+| 13 — implemented, awaiting independent review | Forecast and safe-to-spend | forecasting/cashflow |
 | 14 | Deterministic insights and operations | insights/maintenance |
 | 15 | MVP acceptance, export and restore | E2E/security/operations |
 | 16 | Goals and reproducible monthly review | goals/reports |
@@ -44,3 +44,5 @@ Task 9 delivery is in [its report](task-9-report.md), with durable relationships
 Task 10 financial reporting policy and limitations are in [its decisions](task-10-decisions.md). PR #9 was independently reviewed/merged and exact master CI passed before implementing Task 11 from [its approved prompt](task-11-prompt.md).
 
 Task 11 scope, overlap hierarchy, currency and incomplete-result policies are in [its decisions](task-11-decisions.md). Task 12 requires a separate request after independent Task 11 review/merge and successful exact master CI; see [prepared Task 12 prompt](task-12-prompt.md). No recurring engine or forecasting is part of Task 11.
+
+Task 12 / PR #11 was independently reviewed and merged; exact post-merge master CI passed before Task 13. Task 13 financial eligibility/date/coverage/double-count policies are in [its decisions](task-13-decisions.md) and verification in [its report](task-13-report.md). Task 14 requires a separate request after independent Task 13 review, actual merge and exact-master successful CI; see [the bounded prompt](task-14-prompt.md).

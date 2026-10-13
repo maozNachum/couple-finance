@@ -45,6 +45,8 @@
     "@finance/contracts/budgets": "../../supabase/functions/_shared/core/contracts/budgets.ts",
     "@finance/domain/budgets": "../../supabase/functions/_shared/core/domain/budgets.ts",
     "@finance/contracts/obligations": "../../supabase/functions/_shared/core/contracts/obligations.ts",
-    "@finance/domain/obligations": "../../supabase/functions/_shared/core/domain/obligations.ts"
+    "@finance/domain/obligations": "../../supabase/functions/_shared/core/domain/obligations.ts",
+    "@finance/domain/forecast": "../../supabase/functions/_shared/core/domain/forecast.ts",
+    "@finance/contracts/forecast": "../../supabase/functions/_shared/core/contracts/forecast.ts"
   }
 }
