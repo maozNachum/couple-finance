@@ -1,5 +1,7 @@
 # Source and AI boundaries — future work
 
+Task 9 consumes retained accepted-import references and immutable canonical revision provenance as matching evidence. References are compared exactly only when nonblank and are not certified transfer/statement identities. Matching never invokes a provider or creates transactions, appoints source authority, rewrites raw/normalized evidence or fetches FX. Explicit historical FX is selected from existing household evidence; origin, direction and financial effective date are preserved. See [Task 9 decisions](task-9-decisions.md).
+
 Task 8 uses `generic-csv-v1` unchanged for server review and commit reparsing. Generic CSV reference columns are not certified globally/source-unique external transaction IDs; references are retained as source-scoped evidence and duplicate candidates, not imposed as uniqueness constraints. Durable exact row identity binds account/FILE_IMPORT source, original byte SHA-256 and row coordinates. Different interpretation of the same row is blocked. Strong-looking similarities still require explicit user decisions; no institution, live-sync or reconciliation capability is claimed.
 
 There are no provider adapters or external connections in Tasks 1–2. Task 2 defines portable source/provenance/ingestion identity contracts only; see [portable contracts](portable-contracts.md).

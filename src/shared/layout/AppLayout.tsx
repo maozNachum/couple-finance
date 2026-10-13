@@ -29,6 +29,7 @@ export function AppLayout() {
           <NavLink to="/accounts"><span aria-hidden="true">▤</span>חשבונות</NavLink>
           <NavLink to="/transactions"><span aria-hidden="true">↔</span>תנועות ויתרות</NavLink>
           <NavLink to="/imports"><span aria-hidden="true">↑</span>הכנת CSV</NavLink>
+          <NavLink to="/reconciliation"><span aria-hidden="true">⇄</span>התאמת תנועות</NavLink>
           <NavLink to="/sign-in"><span aria-hidden="true">↗</span>כניסה</NavLink>
         </nav>
         <div className="household-note">

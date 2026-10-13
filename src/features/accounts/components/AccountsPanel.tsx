@@ -34,7 +34,7 @@ export function AccountsPanel() {
   }
   return <section className="accounts-panel" aria-label="ניהול חשבונות">
     {failed ? <div role="alert"><p>לא ניתן לטעון חשבונות. התחברו מחדש ונסו שוב.</p><Link to="/sign-in">להתחברות</Link></div> : !data ? <p role="status">טוענים חשבונות…</p> : data.households.length === 0 ? <p role="status">אין כרגע גישה לבית.</p> : <>
-      <div className="accounts-toolbar"><label>שווי נכון לתאריך<input aria-label="שווי נכון לתאריך" type="date" min="0001-01-01" max="9999-12-31" value={asOf} onChange={(event) => setAsOf(event.target.value)} /></label><button disabled={busy} onClick={() => setReload((n) => n + 1)}>רענון</button></div>
+      <div className="accounts-toolbar"><label>שווי נכון לתאריך<input aria-label="שווי נכון לתאריך" type="date" min="0001-01-01" max="9999-12-31" value={asOf} onChange={(event) => setAsOf(event.target.value)} /></label><button disabled={busy} onClick={() => setReload((n) => n + 1)}>רענון</button><Link to="/reconciliation">התאמת העברות וסילוקים</Link></div>
       {error && <p role="alert">{error}</p>}
       {data.accounts.length === 0 && <p>אין עדיין חשבונות. אפשר ליצור את החשבון הראשון.</p>}
       {data.accounts.map((record) => <AccountDetails key={`${record.account.id}-${record.version}-${reload}`} record={record} ledgerHistory={data.ledgerHistory.filter((row) => row.transaction.accountId === record.account.id)} history={data.observations.filter((row) => row.accountId === record.account.id && row.householdId === record.account.householdId)} asOf={asOf}

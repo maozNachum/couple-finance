@@ -37,6 +37,8 @@
     "@finance/contracts/categorization": "../../supabase/functions/_shared/core/contracts/categorization.ts",
     "@finance/domain/categorization": "../../supabase/functions/_shared/core/domain/categorization.ts",
     "@finance/contracts/import-preview": "../../supabase/functions/_shared/core/contracts/import-preview.ts",
-    "@finance/contracts/import-commit": "../../supabase/functions/_shared/core/contracts/import-commit.ts"
+    "@finance/contracts/import-commit": "../../supabase/functions/_shared/core/contracts/import-commit.ts",
+    "@finance/contracts/reconciliation": "../../supabase/functions/_shared/core/contracts/reconciliation.ts",
+    "@finance/domain/reconciliation": "../../supabase/functions/_shared/core/domain/reconciliation.ts"
   }
 }
