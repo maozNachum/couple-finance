@@ -31,3 +31,7 @@
 .reconciliation-panel textarea { display: block; width: 100%; min-height: 5rem; box-sizing: border-box; font: inherit; padding: .7rem; border: 1px solid #64776c; border-radius: .5rem; }
 .reconciliation-panel input[type="checkbox"] { display: inline-block; width: auto; margin-inline-end: .5rem; }
 .reconciliation-panel li, .reconciliation-panel bdi { overflow-wrap: anywhere; }
+.budget-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 21rem), 1fr)); gap: 1rem; }
+.budget-cards article { min-inline-size: 0; overflow-wrap: anywhere; padding: 1rem; }
+.budget-cards dl { display: grid; grid-template-columns: 1fr 1fr; gap: .5rem; }
+.budget-cards dd { margin: 0; }

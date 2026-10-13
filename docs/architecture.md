@@ -1,5 +1,7 @@
 # Architecture and placement
 
+Task 11 adds `/budgets`, exact ES-only budget contract/domain aliases and a coherent bounded invoker snapshot nesting Task 10 reporting with category heads and immutable plan revisions. Task 10's existing expense loop exposes conversion/ownership/category details; budget core consumes them and monthly coverage. One narrow private planning command changes only plans, receipts and minimal audit. See [budget decisions](task-11-decisions.md).
+
 Task 10 adds `/dashboard`, two reviewed ES-only reporting aliases and a bounded STABLE invoker `api.reporting_snapshot()` combining existing projections under one RLS/MVCC statement snapshot. Portable reporting owns signs, coverage, monthly effects and deterministic reconciliation warnings. No financial writer or editable aggregate is added. See [reporting decisions](task-10-decisions.md).
 
 Task 9 adds exact `contracts/reconciliation` and `domain/reconciliation` portable aliases plus the reconciliation feature at `/reconciliation`. The pure domain proposes deterministic candidates and checks explicit allocation meanings; the coherent invoker snapshot/private atomic command owns authorization, current revisions, exclusive claims and persistence. LINK/REPLACE/UNLINK never call a financial writer. Separate corrections continue using the existing transaction/categorization architecture. See [Task 9 decisions](task-9-decisions.md).

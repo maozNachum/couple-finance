@@ -2,7 +2,7 @@ import { accountRecordSchema } from '../../contracts/valuation.ts';
 import type { AccountRecord } from '../../contracts/valuation.ts';
 import { transactionRevisionsSchema } from '../../contracts/ledger.ts';
 import type { TransactionRevision } from '../../contracts/ledger.ts';
-import { financialDateSchema } from '../../contracts/financial-date.ts';
+import { financialDateSchema, utcTimestampSchema } from '../../contracts/financial-date.ts';
 import { moneySchema } from '../../contracts/money.ts';
 import type { Money } from '../../contracts/money.ts';
 import { add, decimal, sumDecimals } from './decimal.ts';
@@ -13,8 +13,8 @@ export type LedgerPosition =
   | { readonly state: 'NOT_LEDGER' }
   | { readonly state: 'KNOWN' | 'INCOMPLETE'; readonly money: Money; readonly openingDate: string; readonly postedCount: number };
 
-function timestampOrder(value: string): string {
-  return value.replace(/(?:\.(\d{1,6}))?Z$/, (_match: string, fraction: string | undefined) => `.${(fraction ?? '').padEnd(6, '0')}Z`);
+export function timestampOrder(value: string): string {
+  return utcTimestampSchema.parse(value).replace(/(?:\.(\d{1,6}))?Z$/, (_match: string, fraction: string | undefined) => `.${(fraction ?? '').padEnd(6, '0')}Z`);
 }
 
 /** Validate the complete revision graph before selecting current knowledge. */
