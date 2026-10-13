@@ -108,6 +108,12 @@
       ],
       "@finance/domain/reconciliation": [
         "./supabase/functions/_shared/core/domain/reconciliation.ts"
+      ],
+      "@finance/contracts/reporting": [
+        "./supabase/functions/_shared/core/contracts/reporting.ts"
+      ],
+      "@finance/domain/reporting": [
+        "./supabase/functions/_shared/core/domain/reporting.ts"
       ]
     }
   },

@@ -1,0 +1,38 @@
+import assert from 'node:assert/strict';
+import { randomUUID } from 'node:crypto';
+import { reconciliationFixture } from '../tests/integration/reconciliation-fixture.mjs';
+import { localAdmin,localSql,sqlText,uuid } from './local-supabase.mjs';
+const f=await reconciliationFixture();
+let checks=0;
+const eq=(a,b,label)=>{assert.deepEqual(a,b,label);checks++;};
+const read=async(c=f.a)=>f.rpc(c,'reporting_snapshot');
+try {
+ const bank=await f.account(),card=await f.account('CREDIT_CARD'),foreign=await f.account('BANK','USD');
+ const bAccount=await f.account('BANK','ILS',f.b,f.households[1]);
+ const pay=await f.save(bank,'-50','EXPENSE'),purchase=await f.save(card,'-50','EXPENSE');
+ const cmd=f.link([f.participant(pay,bank,'PAYMENT','CARD'),f.participant(purchase,card,'PURCHASE','CARD')],'CARD');
+ eq((await f.rpc(f.a,'reconcile',cmd)).ok,true,'synthetic card relationship');
+ const rate={id:randomUUID(),base:'USD',quote:'ILS',rate:'3.7',effectiveDate:'2026-10-13',recordedAt:'2026-10-13T00:00:00Z',origin:{kind:'MANUAL',sourceId:foreign.manualSourceId}};
+ const otherRate={...rate,id:randomUUID()};
+ localSql(`insert into finance.fx_evidence(household_id,id,snapshot) values('${uuid(f.households[0])}','${uuid(rate.id)}',${sqlText(JSON.stringify(rate))}::jsonb),('${uuid(f.households[1])}','${uuid(otherRate.id)}',${sqlText(JSON.stringify(otherRate))}::jsonb);`);
+ const a=await read(),b=await read(f.b);
+ eq(a.ok,true,'authorized reporting');eq(a.snapshot.households.map(h=>h.id),[f.households[0]],'household A only');
+ eq(a.snapshot.accounts.length,3,'complete A accounts');eq(b.snapshot.accounts[0].account.id,bAccount.account.id,'independent B account');
+ eq(a.snapshot.rates.map(e=>e.rate.id),[rate.id],'A FX scope');eq(b.snapshot.rates.map(e=>e.rate.id),[otherRate.id],'B FX scope');
+ eq(a.snapshot.decisions.length,1,'A reconciliation evidence');eq(b.snapshot.decisions.length,0,'cross-household reconciliation hidden');
+ eq((await f.anon.rpc('reporting_snapshot')).error?.code,'42501','anonymous RPC denied');
+ eq((await f.a.rpc('reporting_snapshot',{household_id:f.households[1]})).error!==null,true,'forged household argument rejected');
+ const counts=()=>localSql(`select json_build_array((select count(*) from finance.transaction_revisions where household_id='${uuid(f.households[0])}'),(select count(*) from finance.transaction_allocations where household_id='${uuid(f.households[0])}'),(select count(*) from finance.reconciliation_decisions where household_id='${uuid(f.households[0])}'),(select count(*) from private.transaction_audit where household_id='${uuid(f.households[0])}'));`);
+ const before=counts();await read();await read();eq(counts(),before,'dashboard reads never modify history or audit');
+ for(let n=0;n<1001;n++) await f.save(bank,'0.01','INCOME');
+ const large=await read();eq(large.snapshot.history.length,1003,'complete 1001+ history beyond Data API row limit');
+ eq(large.snapshot.size,Object.entries(large.snapshot).filter(([k])=>k!=='size').reduce((n,[,v])=>n+v.length,0),'exact size matches all arrays');
+ localSql(`update finance.household_members set status='REVOKED' where household_id='${uuid(f.households[0])}';`);
+ const revoked=await read();for(const key of ['households','members','accounts','history','observations','decisions','rates'])eq(revoked.snapshot[key].length,0,`revoked unchanged JWT hides ${key}`);
+ const {data:{session}}=await f.a.auth.getSession();assert.ok(session);
+ const sessionId=JSON.parse(Buffer.from(session.access_token.split('.')[1],'base64url').toString()).session_id;
+ localSql(`delete from auth.sessions where id='${uuid(sessionId)}';`);
+ eq((await read()).error.code,'NOT_AUTHORIZED','deleted session denied');
+ await localAdmin().auth.admin.deleteUser(f.users[0].id);eq((await read()).error.code,'NOT_AUTHORIZED','deleted user denied');
+ console.log(`Reporting API: ${checks} assertions passed.`);
+} finally {await f.cleanup();}
