@@ -1,5 +1,7 @@
 # Source and AI boundaries — future work
 
+Task 13 forecasts are read-only consumers of canonical source/authority/revision/planning evidence. Starting valuation can reuse authorized exact-day historical FX, but currency exposure and unsupported future inflows/cash timing stay incomplete. No provider call, source activation, FX forecast, salary prediction or transaction generation is added. See [forecast decisions](task-13-decisions.md).
+
 Task 11 budget actuals reuse Task 10 exact-recognition-day historical FX. Planning never fetches rates, appoints authority or modifies source/FX records. Missing/ambiguous conversion keeps comparisons incomplete, including foreign expenses whose original currency remains visible. No provider or synchronization is added.
 
 Task 9 consumes retained accepted-import references and immutable canonical revision provenance as matching evidence. References are compared exactly only when nonblank and are not certified transfer/statement identities. Matching never invokes a provider or creates transactions, appoints source authority, rewrites raw/normalized evidence or fetches FX. Explicit historical FX is selected from existing household evidence; origin, direction and financial effective date are preserved. See [Task 9 decisions](task-9-decisions.md).

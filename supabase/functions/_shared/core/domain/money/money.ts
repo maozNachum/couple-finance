@@ -40,3 +40,9 @@ export function displayMoney(value: Money): string {
   const money = moneySchema.parse(value);
   return `${fixedDecimal(money.amount, { scale: currencyMinorUnits[money.currency], mode: 'HALF_UP' })} ${money.currency}`;
 }
+/** Planning display preserves all authoritative fractional digits and never rounds capacity upward. */
+export function displayExactMoney(value: Money): string {
+  const money=moneySchema.parse(value), parts=money.amount.split('.'), fraction=parts[1] ?? '';
+  const scale=Math.max(currencyMinorUnits[money.currency],fraction.length);
+  return `${parts[0]}${scale?`.${fraction.padEnd(scale,'0')}`:''} ${money.currency}`;
+}

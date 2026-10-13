@@ -9,6 +9,8 @@ import { householdIdSchema } from '../contracts/identity.ts';
 import { fxRateSchema } from '../contracts/fx.ts';
 import type { TransactionRevision } from '../contracts/ledger.ts';
 import type { Ownership } from '../contracts/ownership.ts';
+import { accountRecordSchema } from '../contracts/valuation.ts';
+import type { AccountRecord } from '../contracts/valuation.ts';
 import { currentTransactions, ledgerBalance } from './money/ledger.ts';
 import { valueAccount } from './money/valuation.ts';
 import { convertMoney } from './money/fx.ts';
@@ -19,6 +21,30 @@ import { decisionIsStale, latestDecisions, evaluateReconciliation } from './reco
 
 const zero = (currency: CurrencyCode) => moneySchema.parse({ amount: '0', currency });
 const order = (a: string,b: string) => a < b ? -1 : a > b ? 1 : 0;
+
+/** Canonical dated position shared by reporting and liquidity selection, without unrelated totals. */
+export function reportingPosition(rawRecord: AccountRecord, history: readonly TransactionRevision[], observations: ReportingSnapshot['observations'], asOf: string, target: CurrencyCode, rates: ReportingSnapshot['rates']): AccountPosition {
+  const record=accountRecordSchema.parse(rawRecord), account=record.account, date=financialDateSchema.parse(asOf), currency=currencyCodeSchema.parse(target);
+  let original: Money | null=null, measurementDate: string | null=null, reason: string | null=null;
+  let coverage: AccountPosition['coverage']='UNKNOWN';
+  if (account.balancePolicy === 'LEDGER') {
+    const balance=ledgerBalance(record,history,date);
+    if (balance.state === 'ERROR') throw new RangeError('Invalid ledger');
+    if (balance.state === 'KNOWN' || balance.state === 'INCOMPLETE') {
+      original=balance.money;measurementDate=date;coverage=balance.state === 'KNOWN'?'COMPLETE':'PARTIAL';reason=balance.state === 'INCOMPLETE'?'PARTIAL_OPENING':null;
+    } else if (balance.state === 'UNKNOWN') reason=balance.reason;
+  } else {
+    const valuation=valueAccount(record,observations,date);
+    if ('observation' in valuation) {
+      original=valuation.observation.money;measurementDate=valuation.observation.date;
+      coverage=valuation.observation.coverage === 'COMPLETE' && measurementDate === date?'COMPLETE':'PARTIAL';
+      reason=valuation.observation.coverage === 'PARTIAL'?'PARTIAL_OBSERVATION':measurementDate !== date?'CARRIED_OBSERVATION':null;
+    } else reason='MISSING_OBSERVATION';
+  }
+  const amount=original?reportingConversion(original,currency,date,account.householdId,rates):null;
+  if (amount?.reason) coverage='PARTIAL';
+  return {account,coverage,reason,measurementDate,amount};
+}
 
 /** Explicit direction, exact effective day, unique immutable household evidence. */
 export function reportingConversion(original: Money, target: CurrencyCode, date: string, householdId: string, rates: ReportingSnapshot['rates']): ConvertedAmount {
@@ -104,28 +130,10 @@ export function householdReport(rawSnapshot: ReportingSnapshot, rawRequest: Repo
     const revisions = [...currentTransactions(record,history)].sort((a,b) => order(a.transaction.id,b.transaction.id));
     current.push(...revisions);
     if (account.status === 'ARCHIVED') warn('ARCHIVED_HISTORY',account.id);
-    let original: Money | null = null, measurementDate: string | null = null, reason: string | null = null;
-    let coverage: AccountPosition['coverage'] = 'UNKNOWN';
-    if (account.balancePolicy === 'LEDGER') {
-      const balance = ledgerBalance(record,history,request.asOf);
-      if (balance.state === 'ERROR') throw new RangeError('Invalid ledger');
-      if (balance.state === 'KNOWN' || balance.state === 'INCOMPLETE') {
-        original = balance.money; measurementDate = request.asOf;
-        coverage = balance.state === 'KNOWN' ? 'COMPLETE' : 'PARTIAL';
-        reason = balance.state === 'INCOMPLETE' ? 'PARTIAL_OPENING' : null;
-      } else if (balance.state === 'UNKNOWN') reason = balance.reason;
-    } else {
-      const valuation = valueAccount(record,snapshot.observations,request.asOf);
-      if ('observation' in valuation) {
-        original = valuation.observation.money; measurementDate = valuation.observation.date;
-        coverage = valuation.observation.coverage === 'COMPLETE' && measurementDate === request.asOf ? 'COMPLETE' : 'PARTIAL';
-        reason = valuation.observation.coverage === 'PARTIAL' ? 'PARTIAL_OBSERVATION' : measurementDate !== request.asOf ? 'CARRIED_OBSERVATION' : null;
-      } else reason = 'MISSING_OBSERVATION';
-    }
-    if (reason) warn(reason,account.id);
-    const amount = original ? reportingConversion(original,request.currency,request.asOf,request.householdId,snapshot.rates) : null;
-    if (amount?.reason) { warn(amount.reason,account.id); coverage = 'PARTIAL'; }
-    return {account,coverage,reason,measurementDate,amount};
+    const position=reportingPosition(record,history,snapshot.observations,request.asOf,request.currency,snapshot.rates);
+    if (position.reason) warn(position.reason,account.id);
+    if (position.amount?.reason) warn(position.amount.reason,account.id);
+    return position;
   });
   const netWorth = aggregatePositions(positions,request.currency);
   const ownership = [
