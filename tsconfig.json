@@ -120,6 +120,12 @@
       ],
       "@finance/domain/budgets": [
         "./supabase/functions/_shared/core/domain/budgets.ts"
+      ],
+      "@finance/contracts/obligations": [
+        "./supabase/functions/_shared/core/contracts/obligations.ts"
+      ],
+      "@finance/domain/obligations": [
+        "./supabase/functions/_shared/core/domain/obligations.ts"
       ]
     }
   },

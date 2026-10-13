@@ -1,5 +1,7 @@
 # Architecture and placement
 
+Task 12 adds `/obligations` and exact ES-only obligation contract/domain aliases. The bounded invoker snapshot nests the Task 10 financial graph; its context validator is reused. Pure monthly hypotheses, version-window calendar generation and explicit actual evidence stay separate. A narrow private planning command writes only obligation/rejection/link decisions, exclusive claims, receipts and minimal audit; no financial or budget writer is called. See [Task 12 decisions](task-12-decisions.md).
+
 Task 11 adds `/budgets`, exact ES-only budget contract/domain aliases and a coherent bounded invoker snapshot nesting Task 10 reporting with category heads and immutable plan revisions. Task 10's existing expense loop exposes conversion/ownership/category details; budget core consumes them and monthly coverage. One narrow private planning command changes only plans, receipts and minimal audit. See [budget decisions](task-11-decisions.md).
 
 Task 10 adds `/dashboard`, two reviewed ES-only reporting aliases and a bounded STABLE invoker `api.reporting_snapshot()` combining existing projections under one RLS/MVCC statement snapshot. Portable reporting owns signs, coverage, monthly effects and deterministic reconciliation warnings. No financial writer or editable aggregate is added. See [reporting decisions](task-10-decisions.md).

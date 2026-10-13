@@ -50,7 +50,7 @@ export function aggregatePositions(positions: readonly AccountPosition[], curren
     included: selected.length, required: positions.length };
 }
 
-function validateContext(s: ReportingSnapshot) {
+export function validateReportingContext(s: ReportingSnapshot) {
   for (const rows of [s.households,s.members,s.accounts.map(a => a.account),s.observations]) {
     if (new Set(rows.map(r => r.id)).size !== rows.length) throw new RangeError('Duplicate identity');
   }
@@ -91,7 +91,7 @@ function validateContext(s: ReportingSnapshot) {
 /** Current corrected knowledge, complete authorized graph; no I/O or ambient clock. */
 export function householdReport(rawSnapshot: ReportingSnapshot, rawRequest: ReportingRequest) {
   const snapshot = reportingSnapshotSchema.parse(rawSnapshot), request = reportingRequestSchema.parse(rawRequest);
-  validateContext(snapshot);
+  validateReportingContext(snapshot);
   if (!snapshot.households.some(h => h.id === request.householdId)) throw new RangeError('Unknown household');
   const period = monthBoundaries(request.month);
   const accounts = snapshot.accounts.filter(a => a.account.householdId === request.householdId).sort((a,b) => order(a.account.id,b.account.id));
