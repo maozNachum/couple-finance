@@ -4,6 +4,7 @@ export function currentDay() {
 }
 export const forecastCoverageText = {COMPLETE:'מודל מלא לפי הרשומות',PARTIAL:'תחזית חלקית בלבד',UNKNOWN:'יתרת הפתיחה אינה ידועה',UNAVAILABLE:'לא ניתן לחשב תחזית'};
 export const diagnosticText: Readonly<Record<string,string>> = {
+  BUDGET_CATEGORY_COMPLETENESS:'התקציב נשאר חלקי בגלל בדיקת קטגוריות ברמת הבית, אף שההוצאות ללא קטגוריה נמצאות מחוץ לתחום הבעלות שלו.',
   ACCESSIBILITY_UNRESOLVED:'נדרשת בחירה מפורשת אם כספי החשבון זמינים מיד.',
   ARCHIVED_LIQUID_POSITION:'לחשבון בארכיון חסרה ראיית סגירה מתוארכת. נדרשת בדיקת יתרה.',
   UNKNOWN_BALANCE:'יתרת החשבון אינה ידועה.',MISSING_OPENING:'חסרה יתרת פתיחה.',PARTIAL_OPENING:'כיסוי יתרת הפתיחה חלקי.',

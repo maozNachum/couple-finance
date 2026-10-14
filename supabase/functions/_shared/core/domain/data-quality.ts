@@ -162,8 +162,20 @@ export function financialDataQuality(raw:DataQualitySnapshot,rawRequest:DataQual
   monthlyFindings(report,[impact('MONTHLY',`${q.month}/${q.currency}`,report.monthly.coverage)]);
   const affectedBudgets=budget.comparisons.filter(c=>c.plan.status==='ACTIVE' && c.coverage==='INCOMPLETE');
   monthlyFindings(budget.report,affectedBudgets.map(c=>impact('BUDGET',c.plan.id)));
-  for(const c of affectedBudgets) if(c.issues.includes('UNCATEGORIZED_SCOPE'))for(const e of budget.report.expenses.filter(e=>e.categoryId===null))
-    add('CATEGORY_SCOPE',e.transactionId,{kind:'TRANSACTION',id:e.transactionId},'UNCATEGORIZED_SCOPE',impact('BUDGET',c.plan.id),revisionEvidence(e.transactionId),'CATEGORIES');
+  for(const c of affectedBudgets) if(c.issues.includes('UNCATEGORIZED_SCOPE')) {
+    const scope=c.plan.scope;
+    // Match allocation ownership exactly as the canonical budget calculator does,
+    // ignoring only the unknown category. Its household-wide completeness gate stays intact.
+    const relevant=budget.report.expenses.filter(e=>e.categoryId===null && (scope.kind==='ALL' || scope.kind==='TOTAL' ||
+      scope.kind==='SHARED' && e.ownership.kind==='HOUSEHOLD' ||
+      scope.kind==='MEMBER' && e.ownership.kind==='MEMBER' && scope.memberId===e.ownership.memberId));
+    for(const e of relevant)
+      add('CATEGORY_SCOPE',e.transactionId,{kind:'TRANSACTION',id:e.transactionId},'UNCATEGORIZED_SCOPE',impact('BUDGET',c.plan.id),revisionEvidence(e.transactionId),'CATEGORIES');
+    if(!relevant.length)
+      add('CALCULATION_LIMITATION',`BUDGET_CATEGORY_COMPLETENESS/${c.plan.id}`,{kind:'BUDGET',id:c.plan.id},'BUDGET_CATEGORY_COMPLETENESS',impact('BUDGET',c.plan.id),
+        [{kind:'BUDGET',id:c.plan.id,version:c.plan.version,sourceId:null,measuredOn:null,recordedAt:c.plan.recordedAt,currency:c.plan.planned.currency}],
+        'BUDGETS','בדיקת השלמות הקיימת של התקציב מחילה אזהרה על הוצאות ללא קטגוריה בכל הבית. לא נמצאה הוצאה כזו בתחום הבעלות של תקציב זה; אין לייחס אליו הוצאות של אחרים. החישוב נשאר חלקי לפי המדיניות הקיימת.');
+  }
   for(const w of report.warnings)if(w.relationshipId)relationship(w.relationshipId,w.code,impact('RECONCILIATION',w.relationshipId));
 
   function payment(e:typeof expected[number],reason:string,i:QualityImpact) {

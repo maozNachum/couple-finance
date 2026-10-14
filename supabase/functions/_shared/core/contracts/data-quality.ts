@@ -27,7 +27,7 @@ export type QualityModule = 'BALANCE' | 'NET_WORTH' | 'MONTHLY' | 'BUDGET' | 'OB
 export type QualityAction = 'ACCOUNTS' | 'TRANSACTIONS' | 'CATEGORIES' | 'RECONCILIATION' | 'OBLIGATIONS' | 'FORECAST' | 'BUDGETS';
 export type QualityType = 'BALANCE_EVIDENCE' | 'HISTORICAL_FX' | 'UNCLASSIFIED_EFFECT' | 'RECONCILIATION_EVIDENCE' | 'CATEGORY_SCOPE' | 'PAYMENT_EVIDENCE' | 'CALCULATION_LIMITATION';
 export type QualityEvidence = {
-  readonly kind:'ACCOUNT' | 'SOURCE' | 'REVISION' | 'OBSERVATION' | 'RECONCILIATION' | 'OBLIGATION' | 'PAYMENT' | 'FX';
+  readonly kind:'ACCOUNT' | 'SOURCE' | 'REVISION' | 'OBSERVATION' | 'RECONCILIATION' | 'OBLIGATION' | 'PAYMENT' | 'FX' | 'BUDGET';
   readonly id:string; readonly version:number | null; readonly sourceId:string | null;
   readonly measuredOn:string | null; readonly recordedAt:string | null; readonly currency:string | null;
   readonly authorityFrom?:string | null;
@@ -35,7 +35,7 @@ export type QualityEvidence = {
 export type QualityImpact = {readonly module:QualityModule; readonly resultId:string; readonly state:Coverage};
 export type QualityFinding = {
   readonly id:string; readonly type:QualityType; readonly householdId:string;
-  readonly subject:{readonly kind:'ACCOUNT' | 'TRANSACTION' | 'RELATIONSHIP' | 'OCCURRENCE' | 'FX_PAIR' | 'HOUSEHOLD';readonly id:string};
+  readonly subject:{readonly kind:'ACCOUNT' | 'TRANSACTION' | 'RELATIONSHIP' | 'OCCURRENCE' | 'FX_PAIR' | 'HOUSEHOLD' | 'BUDGET';readonly id:string};
   readonly reasons:readonly string[]; readonly explanation:string; readonly state:Coverage;
   readonly evidence:readonly QualityEvidence[]; readonly impacts:readonly QualityImpact[];
   readonly action:QualityAction | null; readonly limitation:string | null; readonly observationAgeDays:number | null;

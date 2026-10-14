@@ -7,8 +7,10 @@ import { transactionRevisionSchema } from '@finance/contracts/ledger';
 import type { TransactionRevision } from '@finance/contracts/ledger';
 import { reportingSnapshotSchema } from '@finance/contracts/reporting';
 import { budgetRevisionSchema } from '@finance/contracts/budgets';
+import { budgetReport } from '@finance/domain/budgets';
 import { categorySchema } from '@finance/contracts/categorization';
 import { householdIdSchema } from '@finance/contracts/identity';
+import { householdMemberListSchema } from '@finance/contracts/household';
 import { fxRateSchema } from '@finance/contracts/fx';
 import { reconciliationDecisionSchema } from '@finance/contracts/reconciliation';
 import { selectionFor } from '@finance/domain/reconciliation';
@@ -34,6 +36,66 @@ const request=(extra={})=>dataQualityRequestSchema.parse({reporting:{householdId
 const calc=(s=quality(),q=request())=>financialDataQuality(s,q);
 const observation=(date='2026-09-01',extra={})=>observationSchema.parse({id:id(900),householdId:id(1),accountId:id(10),sourceId:id(110),date,money:{amount:'100',currency:'ILS'},coverage:'COMPLETE',supersedesId:null,note:'',fx:null,recordedAt:'2026-10-01T00:00:00Z',...extra});
 const forecast=()=>({householdId:id(1),start:'2026-10-01',evidenceAsOf:'2026-10-14',horizon:30,buffer:{amount:'0',currency:'ILS'},accounts:[{accountId:id(10),choice:'INCLUDE'}]});
+
+function scopedCategoryQuality(kind:'MEMBER'|'SHARED'|'ALL'|'TOTAL',owners:readonly ('A'|'B'|'SHARED')[]) {
+  const category=categorySchema.parse({id:id(50),householdId:id(1),name:'Synthetic',kind:'EXPENSE',status:'ACTIVE',version:1});
+  const b=budgetRevisionSchema.parse({id:id(60),householdId:id(1),month:'2026-10',scope:{kind,memberId:kind==='MEMBER'?id(2):null,categoryId:kind==='TOTAL'?null:id(50)},planned:{amount:'100',currency:'ILS'},version:1,status:'ACTIVE',actorMemberId:id(2),recordedAt:stamp,category:kind==='TOTAL'?null:category});
+  const expenses=owners.map((owner,i)=>{const v=revision(i+2);return transactionRevisionSchema.parse({...v,transaction:{...v.transaction,allocations:v.transaction.allocations.map(a=>({...a,ownership:owner==='SHARED'?{kind:'HOUSEHOLD'}:{kind:'MEMBER',memberId:id(owner==='A'?2:4)}}))}});});
+  return quality(snapshot([opening(),...expenses],[],[account()],{members:householdMemberListSchema.parse([{id:id(2),householdId:id(1),userId:id(3),displayName:'A',status:'ACTIVE'},{id:id(4),householdId:id(1),userId:id(5),displayName:'B',status:'ACTIVE'}])}),{categories:[category],budgets:[b],size:2});
+}
+test('personal category budget A never attributes exclusively B-owned expenses',()=>{
+  const s=scopedCategoryQuality('MEMBER',['B']),r=calc(s);
+  eq(r.findings.filter(f=>f.type==='CATEGORY_SCOPE'),[]);
+  eq(r.calculations.find(c=>c.module==='BUDGET')?.state,'PARTIAL');
+  const canonical=budgetReport({reporting:s.obligations.reporting,categories:s.categories,revisions:s.budgets,size:s.size},request().reporting).comparisons[0]!;
+  eq([canonical.coverage,canonical.issues,canonical.remaining],['INCOMPLETE',['UNCATEGORIZED_SCOPE'],null]);
+  const f=r.findings[0]!;
+  eq([f.type,f.subject,f.reasons,f.action],['CALCULATION_LIMITATION',{kind:'BUDGET',id:id(60)},['BUDGET_CATEGORY_COMPLETENESS'],'BUDGETS']);
+  eq(f.evidence,[{kind:'BUDGET',id:id(60),version:1,sourceId:null,measuredOn:null,recordedAt:stamp,currency:'ILS'}]);
+  eq(f.impacts,[{module:'BUDGET',resultId:id(60),state:'PARTIAL'}]);
+  eq(f.limitation!==null,true);
+});
+test('personal category budget includes A but excludes B and household allocations',()=>{
+  const r=calc(scopedCategoryQuality('MEMBER',['A','B','SHARED']));
+  eq(r.findings.map(f=>[f.type,f.subject.id]),[['CATEGORY_SCOPE',id(2002)]]);
+  eq(r.findings[0]!.evidence.map(e=>[e.id,e.version]),[[id(1002),1]]);
+});
+test('shared category budget excludes individually owned expenses',()=>{
+  const r=calc(scopedCategoryQuality('SHARED',['A','B']));
+  eq(r.findings.map(f=>f.type),['CALCULATION_LIMITATION']);
+  eq(r.calculations.find(c=>c.module==='BUDGET')?.state,'PARTIAL');
+});
+test('shared category budget attributes only household-owned allocations',()=>{
+  const r=calc(scopedCategoryQuality('SHARED',['A','SHARED','B']));
+  eq(r.findings.map(f=>[f.type,f.subject.id]),[['CATEGORY_SCOPE',id(2003)]]);
+});
+test('ALL category scope genuinely includes both members and shared expenses',()=>{
+  const r=calc(scopedCategoryQuality('ALL',['A','B','SHARED']));
+  eq(r.findings.map(f=>[f.type,f.subject.id]),[2002,2003,2004].map(n=>['CATEGORY_SCOPE',id(n)]));
+  eq(r.findings.map(f=>f.impacts),Array.from({length:3},()=>[{module:'BUDGET',resultId:id(60),state:'PARTIAL'}]));
+});
+test('TOTAL has no category uncertainty and retains all ownership actuals',()=>{
+  const s=scopedCategoryQuality('TOTAL',['A','B','SHARED']),r=calc(s);
+  eq(r.findings,[]);eq(r.calculations.find(c=>c.module==='BUDGET')?.state,'COMPLETE');
+  const c=budgetReport({reporting:s.obligations.reporting,categories:s.categories,revisions:s.budgets,size:s.size},request().reporting).comparisons[0]!;
+  eq([c.lines.length,c.actual,c.remaining],[3,{amount:'30',currency:'ILS'},{amount:'70',currency:'ILS'}]);
+});
+test('split ownership groups only relevant budget impacts with deterministic revision evidence',()=>{
+  const base=scopedCategoryQuality('MEMBER',['B']),v=base.obligations.reporting.history[1]!,a=v.transaction.allocations[0]!;
+  const split=transactionRevisionSchema.parse({...v,transaction:{...v.transaction,money:{amount:'-30',currency:'ILS'},allocations:[a,{...a,id:id(9001),ownership:{kind:'MEMBER',memberId:id(2)}},{...a,id:id(9002),ownership:{kind:'HOUSEHOLD'}}]}});
+  const shared=budgetRevisionSchema.parse({...base.budgets[0]!,id:id(61),scope:{kind:'SHARED',memberId:null,categoryId:id(50)}});
+  const s=quality(snapshot([opening(),split],[],[account()],{members:base.obligations.reporting.members}),{categories:base.categories,budgets:[...base.budgets,shared],size:3}),before=JSON.stringify(s),r=calc(s);
+  eq(r.findings.length,1);eq(r.findings[0]!.type,'CATEGORY_SCOPE');
+  eq(r.findings[0]!.impacts.map(i=>i.resultId),[id(60),id(61)]);
+  eq(r.findings[0]!.evidence.map(e=>[e.id,e.version]),[[v.revisionId,1]]);
+  eq(calc(s),r);eq(JSON.stringify(s),before);
+  eq(calc({...s,budgets:[...s.budgets].reverse(),obligations:{...s.obligations,reporting:{...s.obligations.reporting,history:[...s.obligations.reporting.history].reverse(),members:[...s.obligations.reporting.members].reverse()}}}),r);
+});
+test('ownership-excluded budget limitation is deterministic without transaction attribution',()=>{
+  const s=scopedCategoryQuality('MEMBER',['B','SHARED']),r=calc(s);
+  eq(calc(s),r);eq(calc({...s,obligations:{...s.obligations,reporting:{...s.obligations.reporting,history:[...s.obligations.reporting.history].reverse()}}}),r);
+  eq(r.findings.length,1);eq(r.findings[0]!.evidence.some(e=>e.kind==='REVISION'),false);
+});
 
 test('known complete records can have no findings and external coverage remains unknown',()=>{const r=calc();eq(r.findings,[]);eq(r.externalCoverage,'UNKNOWN');eq(r.calculations.find(c=>c.module==='NET_WORTH')?.state,'COMPLETE');});
 test('empty valid known set is not a zero valuation or invented missing account',()=>{const r=calc(quality(snapshot([],[],[])));eq(r.findings,[]);eq(r.externalCoverage,'UNKNOWN');eq(r.calculations.find(c=>c.module==='NET_WORTH')?.state,'UNAVAILABLE');});
