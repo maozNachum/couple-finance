@@ -27,3 +27,6 @@ try {
   eq(record(),evidence,'authorization checks do not mutate financial history');
   console.log(`Forecast read API: ${checks} assertions passed.`);
 } finally {await f.cleanup();}
+
+// Task 14 reuses this gate; the established verification command chain stays unchanged.
+await import('./test-data-quality.mjs');

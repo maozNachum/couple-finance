@@ -15,6 +15,7 @@ import { TransactionsPage } from '@/pages/transactions/TransactionsPage';
 import { BudgetsPage } from '@/pages/budgets/BudgetsPage';
 import { ObligationsPage } from '@/pages/obligations/ObligationsPage';
 import { ForecastPage } from '@/pages/forecast/ForecastPage';
+import { DataQualityPage } from '@/pages/data-quality/DataQualityPage';
 
 export function AppRoutes() {
   return (
@@ -30,6 +31,7 @@ export function AppRoutes() {
         <Route path="budgets" element={<BudgetsPage />} />
         <Route path="obligations" element={<ObligationsPage />} />
         <Route path="forecast" element={<ForecastPage />} />
+        <Route path="data-quality" element={<DataQualityPage />} />
         <Route path="categories" element={<CategoriesPage />} />
         <Route path="imports" element={<ImportsPage />} />
         <Route path="reconciliation" element={<ReconciliationPage />} />

@@ -1,3 +1,9 @@
+# Task 14 — historical prompt superseded
+
+The pre-replanning prompt below is retained as historical context. It is **not the current implementation authorization**. The user-approved Task 14 is Financial Data Quality & Actionable Evidence only: no deterministic recommendations, persistent action lifecycle, AI, bank integration or Task 15 implementation. Its accepted scope and baseline evidence are recorded in [Task 14 decisions](task-14-decisions.md). The [current roadmap](roadmap.md) governs the subsequent Task 15a pilot foundation, not the old generic MVP task.
+
+---
+
 # Task 14 only — Deterministic insights and operations
 
 Start only after independent Task 13 review, actual merge into master and successful CI on the exact post-merge master SHA. Fetch and synchronize master; verify those gates directly and stop if either fails. Read every applicable AGENTS.md, approved architecture/data/security/providers/portable contracts/roadmap and Tasks 2–13 delivery, decisions and review fixes. Create a separate feature branch; never work directly on master, edit synced references or rewrite merged migrations.

@@ -1,6 +1,6 @@
 # Couple Finance
 
-Private household finance application for Maoz and Shachar. **Tasks 1–5:** a Hebrew RTL shell, canonical financial contracts, local invitation-only authentication with household isolation, manual accounts with dated observations, and manual transactions with allocations and dated LEDGER balances. No transaction ingestion, reporting, live providers, deployment or AI is implemented.
+Private household finance application for Maoz and Shachar. Tasks 1–13 are merged: Hebrew RTL interface, canonical financial contracts, invitation-only Auth and household isolation, dated accounts/ledger, categorization, explicit CSV ingestion, reconciliation, reporting, budgets, confirmed obligations and conservative cash-flow forecasting. Task 14 adds read-only financial data quality for independent review. Live banking, AI, production deployment and pilot readiness remain future work; see the [current roadmap](docs/roadmap.md).
 
 ## Run locally
 
@@ -11,7 +11,7 @@ npm ci
 npm run dev
 ```
 
-Open http://127.0.0.1:5173. Routes include `/`, `/about`, `/sign-in`, `/auth/confirm`, `/household`, `/accounts` and `/transactions`, plus an unknown-route fallback. Authenticated routes need the local stack/configuration. The site contains no mock balances. Public configuration guidance is in `.env.example`.
+Open http://127.0.0.1:5173. Routes include `/`, `/about`, `/sign-in`, `/auth/confirm`, `/household`, `/accounts`, `/transactions`, `/dashboard`, `/budgets`, `/obligations`, `/forecast`, `/imports`, `/reconciliation`, `/categories` and `/data-quality`, plus an unknown-route fallback. Authenticated routes need the local stack/configuration. The site contains no mock balances. Public configuration guidance is in `.env.example`.
 
 ## Verify
 

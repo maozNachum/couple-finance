@@ -31,6 +31,7 @@ export function AppLayout() {
           <NavLink to="/budgets"><span aria-hidden="true">▦</span>תקציבים</NavLink>
           <NavLink to="/obligations"><span aria-hidden="true">↻</span>התחייבויות</NavLink>
           <NavLink to="/forecast"><span aria-hidden="true">▥</span>תחזית תזרים</NavLink>
+          <NavLink to="/data-quality"><span aria-hidden="true">ⓘ</span>איכות המידע</NavLink>
           <NavLink to="/transactions"><span aria-hidden="true">↔</span>תנועות ויתרות</NavLink>
           <NavLink to="/imports"><span aria-hidden="true">↑</span>הכנת CSV</NavLink>
           <NavLink to="/reconciliation"><span aria-hidden="true">⇄</span>התאמת תנועות</NavLink>

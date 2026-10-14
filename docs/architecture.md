@@ -1,5 +1,7 @@
 # Architecture and placement
 
+Task 14 adds `/data-quality` and two exact ES-only data-quality aliases. One additive STABLE invoker RPC nests the existing obligations/reporting graph once and adds bounded categories/budgets in the same MVCC statement snapshot. Pure core validates the complete graph, consumes existing calculators and groups explainable findings. No model formula or writer changes. See [decisions](task-14-decisions.md).
+
 Task 13 adds the `/forecast` feature and two exact ES-only forecast aliases. A read-only forecast consumes the unchanged bounded Task 12 snapshot; canonical `reportingPosition` is extracted without changing reporting semantics, so cash calculations do not depend on unrelated net-worth/monthly totals. Pure core owns accessibility, bounded daily events, deduplication, uncertainty and minimum-minus-buffer. Browser choices and buffer stay in memory; there is no new financial/planning writer. See [Task 13 decisions](task-13-decisions.md).
 
 Task 12 adds `/obligations` and exact ES-only obligation contract/domain aliases. The bounded invoker snapshot nests the Task 10 financial graph; its context validator is reused. Pure monthly hypotheses, version-window calendar generation and explicit actual evidence stay separate. A narrow private planning command writes only obligation/rejection/link decisions, exclusive claims, receipts and minimal audit; no financial or budget writer is called. See [Task 12 decisions](task-12-decisions.md).
@@ -12,7 +14,7 @@ Task 9 adds exact `contracts/reconciliation` and `domain/reconciliation` portabl
 
 Task 8 extends ingestion preview with an explicit import review/commit Edge endpoint. CSV parsing stays in the reviewed provider; authorization, candidate search, atomic financial writes and receipts stay in curated SQL commands. The internal Task 6 writer now accepts authorized internal FILE_IMPORT creation, while manual commands cannot fabricate imports. Stored revision/ledger readers accept retained account FILE_IMPORT relationships; manual corrections and category commands preserve original provenance. See [Task 8 decisions](task-8-decisions.md).
 
-Status: approved design; Tasks 1–5 implemented locally. Use a modular monolith, one React/Vite client and one Supabase backend. Canonical primitives/contracts, invited-user identity, manual accounts/dated observations and manual transactions/ledger exist. Reporting and ingestion remain later work.
+Status: Tasks 1–13 merged; Task 14 implemented for review. Retain the modular monolith, one React/Vite client and one Supabase backend. See the canonical roadmap for unimplemented future scope.
 
 ## Dependency ownership
 
