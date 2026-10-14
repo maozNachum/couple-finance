@@ -29,6 +29,10 @@ try {
  const started=performance.now();
  const large=await read();eq(large.snapshot.history.length,1003,'complete 1001+ history beyond Data API row limit');
  console.log(`Reporting bulk snapshot: ${large.snapshot.history.length} revisions, ${Math.round(performance.now()-started)} ms.`);
+ const qualityStarted=performance.now();
+ const quality=await f.rpc(f.a,'data_quality_snapshot');
+ eq(quality.snapshot.obligations.reporting,large.snapshot,'quality reuses the exact complete 1003-row reporting graph');
+ console.log(`Data quality bulk snapshot: 1003 revisions, ${Math.round(performance.now()-qualityStarted)} ms.`);
  for(let repeat=0;repeat<3;repeat++)eq(await read(),large,'repeated bulk snapshot retains exact complete evidence');
  // Inspect work rather than asserting a machine-dependent duration. Claims stay
  // on local psql stdin; only scalar plan metrics are emitted to CI logs.

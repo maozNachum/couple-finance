@@ -16,14 +16,24 @@ Implement one bounded task per conversation. Each task must leave a working stat
 | 10 — reviewed and merged (PR #9) | Dashboard and net worth | dashboard/reporting/core |
 | 11 — reviewed and merged (PR #10) | Monthly budgets | budgets/budgeting |
 | 12 — reviewed and merged (PR #11) | Recurring candidates and confirmed obligations | recurring/obligations |
-| 13 — implemented, awaiting independent review | Forecast and safe-to-spend | forecasting/cashflow |
-| 14 | Deterministic insights and operations | insights/maintenance |
-| 15 | MVP acceptance, export and restore | E2E/security/operations |
-| 16 | Goals and reproducible monthly review | goals/reports |
-| 17 | Investments and justified performance metrics | investments |
-| 18 | One verified authorized live provider | selected adapter/sync |
-| 19 | Controlled AI and low-noise notifications | AI/assistant/notifications |
-| 20 | Long-term sources and scenarios | selected product extensions |
+| 13 — reviewed and merged (PR #12; master CI fix PR #13) | Cash-flow forecast and conservative safe-to-spend | forecasting/cashflow |
+| 14 — implementation for review | Financial data quality and actionable evidence | data-quality/core/read-only snapshot |
+| 15a — approved next scope, not implemented | Private pilot foundation, backup and tested recovery, secure operation | operations/security |
+| 15b — approved direction, not implemented | Practical secure daily mobile usability | mobile UX/auth |
+| 16a — approved direction, not implemented | Broad financial account coverage and easier data intake | accounts/intake/source coverage |
+| 16b — conditional, not implemented | Dynamic FX evidence when actual pilot needs justify it | historical FX integration |
+| 17 — approved direction, not implemented | Minimal financial Goals Engine | goals |
+| 18 — approved direction, not implemented | Deterministic insights and actionable recommendations | insights |
+| 19a–19b — approved direction, not implemented | First AI Financial Coach and contextual conversation | controlled AI |
+| 20a–20b — approved direction, not implemented | Authorized background evaluation and proactive notifications | background/notifications |
+
+The approved post-Task-13 direction centralizes personal and household financial information in a trustworthy financial core. A future coach consumes that core; it does not become the source of financial truth. Task 14 explains existing evidence without adding recommendations, jobs or persistent action workflows. See [Task 14 decisions](task-14-decisions.md) and the bounded [Task 15a prompt](task-15a-prompt.md).
+
+Financial provider integration is a parallel research workstream. Insert implementation when a legally and technically suitable provider becomes available, without unnecessarily blocking the rest of the roadmap. This is not approval to start a provider connection in Task 14.
+
+Provisional longer-term backlog preserves richer cash-flow planning, investments and performance, pensions, financial-independence planning, product comparisons, controlled automation and other financial capabilities. Their architecture and scheduling are deliberately unresolved.
+
+Replanning provenance: this update preserves the approved summary provided in the Task 14 implementation request. The latest independently reviewed full roadmap document was not available in the working context; no additional approval is inferred. It supersedes the old Task 14 insights/operations, Task 15 generic MVP acceptance and old Task 16–20 sequence for future work. Historical task reports/decisions remain intact.
 
 Task 1 acceptance: `npm run verify` passes; RTL desktop/mobile visual review; no server import in browser; read-only mirror files untouched; no financial mock functionality. CI is configured, but remote CI runs are not claimed until a repository is hosted and the workflow executes.
 
@@ -45,4 +55,4 @@ Task 10 financial reporting policy and limitations are in [its decisions](task-1
 
 Task 11 scope, overlap hierarchy, currency and incomplete-result policies are in [its decisions](task-11-decisions.md). Task 12 requires a separate request after independent Task 11 review/merge and successful exact master CI; see [prepared Task 12 prompt](task-12-prompt.md). No recurring engine or forecasting is part of Task 11.
 
-Task 12 / PR #11 was independently reviewed and merged; exact post-merge master CI passed before Task 13. Task 13 financial eligibility/date/coverage/double-count policies are in [its decisions](task-13-decisions.md) and verification in [its report](task-13-report.md). Task 14 requires a separate request after independent Task 13 review, actual merge and exact-master successful CI; see [the bounded prompt](task-14-prompt.md).
+Task 12 / PR #11 was independently reviewed and merged; exact post-merge master CI passed before Task 13. Task 13 financial eligibility/date/coverage/double-count policies are in [its decisions](task-13-decisions.md) and verification in [its report](task-13-report.md). Task 13 and its CI fix are merged. Task 14 baseline evidence is recorded in [its decisions](task-14-decisions.md); the successful exact-master CI evidence was supplied from the user’s authenticated browser. Task 15a must wait for independent Task 14 review, merge and exact-master CI.
