@@ -67,7 +67,7 @@ retries and `.github/workflows/ci.yml` remain unchanged.
 | Gate | Final result |
 | --- | --- |
 | TypeScript, ESLint, production build | Passed |
-| Vitest | 579 / 11 files |
+| Vitest | 579 existing tests / 11 files; final head adds 20 guards (599 / 12) |
 | Deno canonical / import tests | 458 + 15 |
 | Public browser | 12 |
 | SQL | 609 / 14 files |
@@ -76,7 +76,7 @@ retries and `.github/workflows/ci.yml` remain unchanged.
 | Reconciliation / reporting / budgets / obligations | 86 / 31 / 50 / 93 |
 | Authenticated desktop/mobile browser | 62 |
 | Forecast / data quality API | 15 / 22 |
-| New Node recovery guards | 20 |
+| New recovery guards | 20, using the existing Vitest Node environment |
 | Actual wrong target/confirmation/corrupt/incomplete backup | 5 |
 | Actual interrupted restore and quarantine | 3 |
 | Actual missing private object blocks acceptance | 3 |
@@ -89,6 +89,15 @@ previously excluded services to a running project. The correction explicitly
 stops **only the owned project**, retaining its volumes, then starts its full
 stack and verifies PostgREST. Focused Auth passed 33 assertions, followed by
 the full successful verify above. No test weakening or blind retries.
+
+Initial head `b109582` failed remote verify because the new Node-runner test
+file also matched Vitest's existing include pattern. Local reproduction
+confirmed the `node:test` bundling error. The correction uses the existing
+Vitest Node-environment convention without changing any assertion. The
+redundant newly added workflow was removed: all 20 guards now run inside the
+unchanged standard `npm run verify` gate. The complete corrected Vitest run
+passed 599 tests / 12 files in 27.47s; ESLint also passed. Standard exact-head
+CI verification is recorded in the review manifest.
 
 The missing-object adversary initially tripped the complete table comparison
 because authorized Storage removal also writes the private import audit.

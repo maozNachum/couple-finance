@@ -1,4 +1,5 @@
-import { test } from 'node:test';
+// @vitest-environment node
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { randomBytes } from 'node:crypto';
 import { localOnly, validateIdentity, validateTarget, validateBackup, validateTarListing, seal, unseal, sha256 } from '../../scripts/recovery/guard.mjs';

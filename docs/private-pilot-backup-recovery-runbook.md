@@ -57,7 +57,7 @@ while that suite is running.
 From the reviewed repository root, after the suite succeeds:
 
 ```powershell
-node --test tests/tools/recovery.test.mjs
+npx vitest run tests/tools/recovery.test.mjs
 node scripts/recovery/fixture.mjs seed "$lab\source"
 ```
 

@@ -9,7 +9,7 @@ outside the selected scope. A local green suite does not authorize real data.
 | Task 14 merge and exact-master post-merge CI | VERIFIED | PR #14; SHA `29c3622bf79d27411f81ad4eb341eadc26184b7c`; successful push run 38642294172 |
 | Existing stacks protected | VERIFIED | Inventory identifies existing couple-finance/task14 resources; recovery tool cannot adopt them |
 | Local synthetic recovery | VERIFIED | 31 acceptance checks, exact 48-table parity, private bytes and canonical outputs; 105.250s local drill; see task-15a-report.md |
-| New corruption/wrong-target guards | VERIFIED | 20 Node tests plus 11 actual adversarial checks, including interruption and missing Storage bytes |
+| New corruption/wrong-target guards | VERIFIED | 20 recovery tests plus 11 actual adversarial checks, including interruption and missing Storage bytes |
 | Real-data deployment | BLOCKED | Owner must choose hosting, HTTPS/network isolation, protected operator credentials and access policy; no deployment authorized here |
 | Production invitation delivery | BLOCKED | Owner must choose SMTP/email provider, domain and redirects; maintainer must test delivery, expiry, reuse, rate limits and non-enumeration |
 | Real user identity/email loss | BLOCKED | Owners must approve independent identity verification and operator recovery; maintainer must test it with production authentication configuration |
