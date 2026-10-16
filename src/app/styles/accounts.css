@@ -60,6 +60,7 @@
 .accounts-panel a { text-decoration: underline; text-underline-offset: 3px; }
 .accounts-panel .section-links { display: flex; flex-wrap: wrap; gap: .5rem 1rem; }
 .section-links a { display: inline-flex; align-items: center; min-block-size: 44px; }
+.accounts-panel .intake-link { display: inline-flex; align-items: center; min-block-size: 44px; }
 .accounts-panel [role="status"], .accounts-panel [role="alert"] { overflow-wrap: anywhere; }
 .signed-amount { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: .5rem; align-items: end; }
 .signed-amount label { min-inline-size: 0; }

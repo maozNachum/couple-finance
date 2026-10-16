@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { importBatchLimit, importCommitCommandSchema, type ImportReview, type ImportResult, type ImportCommitCommand } from '@finance/contracts/import-commit';
 import { safeErrorSchema } from '@finance/contracts/safe-error';
 import { commitImport } from '../api/imports';
+import { accountHref } from '@/shared/navigation/account-context';
 
 const reasons={PRIOR_IMPORT:'זהות שורת מקור שכבר יובאה — חסומה',INTERPRETATION_CHANGED:'אותה שורת מקור פורשה אחרת בעבר — חסומה',SAME_REFERENCE:'אסמכתה זהה באותו מקור',SAME_FINANCIAL_VALUES:'תאריך, סכום, מטבע ותיאור מנורמל זהים',SAME_DATE_AMOUNT:'תאריך, סכום ומטבע זהים',REPEATED_IN_FILE:'תאריך וסכום חוזרים בקובץ עצמו'};
 const effects={UNCLASSIFIED:'לא מסווגת',INCOME:'הכנסה',EXPENSE:'הוצאה / החזר הוצאה',TRANSFER:'העברה',DEBT_PRINCIPAL:'קרן חוב',INVESTMENT_TRADE:'עסקת השקעה',ADJUSTMENT:'התאמה'};
@@ -47,6 +48,6 @@ export function ImportReviewPanel({review,context,onRunning,pending,onPending,on
  {confirm&&!pending&&<div role="group" aria-label="אישור שמירת תנועות"><h3>שמירת {selected.length} תנועות כספיות</h3><p>זהו יבוא ושמירה ממשיים. תנועות שנרשמו ישפיעו על יתרת LEDGER אם קיימת יתרת פתיחה. לא ייווצרו יתרת פתיחה, קטגוריות או תנועות בחשבון אחר.</p><p>{context}</p><button disabled={busy} onClick={()=>{void send();}}>אישור ושמירת יבוא</button><button disabled={busy} onClick={()=>setConfirm(false)}>חזרה לסקירה</button></div>}
  {pending&&<button disabled={busy||checking} onClick={()=>{void send();}}>בדיקת תוצאה וניסיון חוזר של אותה בקשה</button>}
  {checking&&<p role="status">בודקים מחדש את ההרשאה; בקשת הניסיון החוזר נשמרת בזיכרון…</p>}{busy&&<p role="status">ממתינים לאישור שמירה מהשרת…</p>}{message&&<p role="alert">{message}</p>}
- {result&&<div role="status"><h3>היבוא נשמר ואושר בשרת</h3><p>נשמרו {result.committed} · דולגו {result.skipped} · שגויות {result.invalid} · חסרות מידע {result.unresolved}</p><p>תיעוד המקור נשמר גם לאחר מחיקת הקובץ הזמני.</p>{result.transactions.map(t=><p key={t.transactionId}>רשומה {t.row}: <bdi>{t.transactionId}</bdi></p>)}<Link to="/transactions">צפייה בתנועות שנשמרו</Link></div>}
+ {result&&<div role="status"><h3>היבוא נשמר ואושר בשרת</h3><p>נשמרו {result.committed} · דולגו {result.skipped} · שגויות {result.invalid} · חסרות מידע {result.unresolved}</p><p>תיעוד המקור נשמר גם לאחר מחיקת הקובץ הזמני. שורות שדולגו או נותרו שגויות לא הפכו לתנועות; התוצאה אינה אישור לכיסוי תקופה שלמה.</p>{result.transactions.map(t=><p key={t.transactionId}>רשומה {t.row}: <bdi>{t.transactionId}</bdi></p>)}<Link to={accountHref('/transactions',{id:review.accountId,householdId:review.householdId})}>צפייה בתנועות שנשמרו</Link></div>}
  </section>;
 }
