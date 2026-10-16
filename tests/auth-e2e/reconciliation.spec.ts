@@ -1,3 +1,4 @@
+import { navigateTo } from '../navigation';
 import {test,expect} from '@playwright/test';
 import {randomUUID} from 'node:crypto';
 import AxeBuilder from '@axe-core/playwright';
@@ -13,7 +14,7 @@ test('explicit RTL transfer, uncertain result recovery, immutable history, unlin
   const login=await localAdmin().auth.admin.generateLink({type:'magiclink',email:f.users[0]!.email});if(login.error||!login.data.properties)throw new Error('Synthetic login');
   await page.goto(`/auth/confirm#token_hash=${login.data.properties.hashed_token}&type=email`);
   await page.getByRole('button',{name:'אישור כניסה'}).click();await expect(page.getByRole('heading',{name:'Synthetic household A'})).toBeVisible();
-  await page.getByRole('link',{name:'התאמת תנועות',exact:true}).click();
+  await navigateTo(page, 'התאמת תנועות');
   await page.getByLabel('משק בית להתאמה').selectOption(f.households[0]!);await page.getByLabel('חשבון מקור').selectOption(bank.account.id);
   await page.getByLabel('תנועה יוצאת קיימת').selectOption({label:'Synthetic outgoing · 2026-10-02 · -2000 ILS'});
   await page.getByRole('button',{name:'בחירת Synthetic incoming',exact:true}).click();
@@ -63,7 +64,7 @@ test('card purchases and loan components require explicit meaning and posted evi
   const principal=await f.save(loan,'80','DEBT_PRINCIPAL',null,{description:'Synthetic principal'});
   const login=await localAdmin().auth.admin.generateLink({type:'magiclink',email:f.users[0]!.email});if(login.error||!login.data.properties)throw new Error('Synthetic login');
   await page.goto(`/auth/confirm#token_hash=${login.data.properties.hashed_token}&type=email`);await page.getByRole('button',{name:'אישור כניסה'}).click();
-  await expect(page.getByRole('heading',{name:'Synthetic household A'})).toBeVisible();await page.getByRole('link',{name:'התאמת תנועות',exact:true}).click();
+  await expect(page.getByRole('heading',{name:'Synthetic household A'})).toBeVisible();await navigateTo(page, 'התאמת תנועות');
   await page.getByLabel('משק בית להתאמה').selectOption(f.households[0]!);await page.getByLabel('סוג התאמה').selectOption('CARD');await page.getByLabel('חשבון מקור').selectOption(bank.account.id);
   await page.getByLabel('תנועה יוצאת קיימת').selectOption(payment.transaction.id);await expect(page.getByRole('checkbox',{name:'Synthetic pending authorization',exact:false})).toHaveCount(0);
   await page.getByRole('checkbox',{name:'Synthetic card purchase',exact:false}).check();await page.getByLabel('ראיה וסיבת ההחלטה').fill('Synthetic statement evidence');
@@ -89,7 +90,7 @@ for(const recovery of ['sign-out','revocation'] as const)test(`uncertain reconci
   const bank=await f.account();const payment=await f.save(bank,'-9','TRANSFER',null,{description:'Synthetic protected payment'});
   const login=await localAdmin().auth.admin.generateLink({type:'magiclink',email:f.users[0]!.email});if(login.error||!login.data.properties)throw new Error('Synthetic login');
   await page.goto(`/auth/confirm#token_hash=${login.data.properties.hashed_token}&type=email`);await page.getByRole('button',{name:'אישור כניסה'}).click();
-  await expect(page.getByRole('heading',{name:'Synthetic household A'})).toBeVisible();await page.getByRole('link',{name:'התאמת תנועות',exact:true}).click();
+  await expect(page.getByRole('heading',{name:'Synthetic household A'})).toBeVisible();await navigateTo(page, 'התאמת תנועות');
   await page.getByLabel('משק בית להתאמה').selectOption(f.households[0]!);await page.getByLabel('חשבון מקור').selectOption(bank.account.id);await page.getByLabel('תנועה יוצאת קיימת').selectOption(payment.transaction.id);
   await page.getByLabel('ראיה וסיבת ההחלטה').fill('Explicit one-sided evidence');await page.getByRole('checkbox',{name:'סקרתי את הראיות',exact:false}).check();
   await page.route('**/rest/v1/rpc/reconcile',async route=>{const response=await route.fetch();expect(response.ok()).toBe(true);await route.abort('failed');});
@@ -98,9 +99,9 @@ for(const recovery of ['sign-out','revocation'] as const)test(`uncertain reconci
    localSql(`update finance.household_members set status='REVOKED' where household_id='${uuid(f.households[0])}';`);
    await page.getByRole('button',{name:'רענון התאמות והרשאות',exact:true}).click();await expect(page.getByText('הגישה אינה זמינה.',{exact:false})).toBeVisible();
   }else{
-   await page.getByRole('link',{name:'הבית המשותף',exact:true}).click();await page.getByRole('button',{name:'יציאה',exact:true}).click();
+   await navigateTo(page, 'הבית המשותף');await page.getByRole('button',{name:'יציאה',exact:true}).click();
    await expect(page.getByRole('heading',{name:'כניסה למרחב המשותף',exact:true})).toBeVisible();
-   await page.getByRole('link',{name:'התאמת תנועות',exact:true}).click();
+   await navigateTo(page, 'התאמת תנועות');
    // The SDK may emit SIGNED_OUT during getUser, or getUser may return the
    // confirmed missing-session error. Both outcomes must remove all evidence.
    await expect(page.getByRole('heading',{name:'כניסה למרחב המשותף',exact:true}).or(page.getByText('הגישה אינה זמינה.',{exact:false}))).toBeVisible();

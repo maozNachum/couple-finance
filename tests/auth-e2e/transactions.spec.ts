@@ -48,7 +48,11 @@ test('manual ledger, split meaning, correction, uncertain retry and revoked acce
     await page.getByLabel('יתרה לתאריך').fill('2026-10-05');
     await form.getByLabel('תאריך התנועה').fill('2026-10-02');
     await form.getByLabel('תיאור', { exact: true }).fill('Synthetic principal and interest');
-    await form.getByLabel('סכום התנועה ב־ILS').fill('-11');
+    await form.getByLabel('סכום התנועה ב־ILS').fill('11');
+    const signButton = form.getByRole('button', { name: 'החלפת סימן התנועה', exact: true });
+    if (testInfo.project.name === 'mobile-auth') await signButton.tap();
+    else await signButton.click();
+    await expect(form.getByLabel('סכום התנועה ב־ILS')).toHaveValue('-11');
     await form.getByLabel('סכום חלוקה 1').fill('-10');
     await form.getByLabel('משמעות חלוקה 1').selectOption('DEBT_PRINCIPAL');
     await form.getByLabel('שיוך חלוקה 1').selectOption({ label: 'Synthetic A' });
@@ -67,9 +71,17 @@ test('manual ledger, split meaning, correction, uncertain retry and revoked acce
     await form.getByRole('button', { name: 'שמירת תנועה' }).click();
     await expect(page.getByText('לא ניתן לאשר אם הבקשה נשמרה.', { exact: false })).toBeVisible();
     await expect(form.getByLabel('סכום התנועה ב־ILS')).toBeDisabled();
+    const uncertainCommand = commands.at(-1);
+    const attempts = commands.length;
+    for (const width of [320, 768, 390]) await page.setViewportSize({ width, height: 844 });
+    await page.getByRole('button', { name: /עוד פעולות/ }).click();
+    await page.keyboard.press('Escape');
+    expect(commands.length).toBe(attempts);
+    await expect(form.getByLabel('סכום התנועה ב־ILS')).toBeDisabled();
     await page.getByRole('button', { name: 'ניסיון חוזר לאותה בקשה' }).click();
     await expect(page.getByText('יתרה מחושבת:')).toContainText('89.00 ILS');
     expect(localSql(`select count(*) from finance.transactions where household_id='${uuid(fixture.households[0]!)}';`)).toBe('2');
+    expect(commands.at(-1)).toEqual(uncertainCommand);
     await page.unroute('**/rest/v1/rpc/record_transaction');
     await expect(page.getByText('הוחלפה בתיקון', { exact: false })).toHaveCount(1);
     await page.getByRole('button', { name: 'תיקון / ביטול Synthetic principal and interest', exact: true }).click();
@@ -126,6 +138,7 @@ test('manual ledger, split meaning, correction, uncertain retry and revoked acce
     await page.getByLabel('יתרה לתאריך').fill('2026-10-05');
     await expect(page.getByText('יתרה מחושבת:')).toContainText('80.00 ILS');
     await expect(form).toHaveCount(0);
+    await expect(page.getByRole('link', { name: 'לתנועה חדשה או לתיקון' })).toHaveCount(0);
     localSql(`update finance.household_members set status='REVOKED' where household_id='${uuid(fixture.households[0]!)}';`);
     await page.evaluate(() => window.dispatchEvent(new Event('focus')));
     await expect(page.getByText('אין חשבונות זמינים.', { exact: false })).toBeVisible();

@@ -23,8 +23,9 @@ export function AccountsPanel() {
     }
     const sub = browserClient()?.auth.onAuthStateChange((event) => { if (event === 'SIGNED_OUT') { revision++; setData(null); navigate('/sign-in', { replace: true }); } }).data.subscription;
     const focus = () => { void refresh(); };
-    window.addEventListener('focus', focus); void refresh();
-    return () => { live = false; revision++; sub?.unsubscribe(); window.removeEventListener('focus', focus); };
+    const visibility = () => { if (document.visibilityState === 'visible') void refresh(); else { revision++; setData(null); } };
+    window.addEventListener('focus', focus); document.addEventListener('visibilitychange', visibility); void refresh();
+    return () => { live = false; revision++; sub?.unsubscribe(); window.removeEventListener('focus', focus); document.removeEventListener('visibilitychange', visibility); };
   }, [navigate, reload]);
   async function command(name: 'create_account' | 'update_account' | 'record_balance', input: unknown) {
     setBusy(true); setError('');

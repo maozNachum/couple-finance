@@ -1,3 +1,4 @@
+import { navigateTo } from '../navigation';
 import { test,expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import { randomUUID } from 'node:crypto';
@@ -9,7 +10,7 @@ async function login(page:Page,f:Fixture) {
  const link=await localAdmin().auth.admin.generateLink({type:'magiclink',email:f.users[0]!.email});
  if(link.error||!link.data.properties)throw new Error('Synthetic obligations login failed');
  await page.goto(`/auth/confirm#token_hash=${link.data.properties.hashed_token}&type=email`);await page.getByRole('button',{name:'אישור כניסה'}).click();
- await expect(page.getByRole('heading',{name:'Synthetic household A'})).toBeVisible();await page.getByRole('link',{name:'התחייבויות',exact:true}).click();
+ await expect(page.getByRole('heading',{name:'Synthetic household A'})).toBeVisible();await navigateTo(page, 'התחייבויות');
  await expect(page.getByLabel('מועדים צפויים מתאריך')).toBeVisible();await page.getByLabel('מועדים צפויים מתאריך').fill('2026-10-01');await page.getByLabel('מועדים צפויים עד תאריך').fill('2026-10-31');
 }
 const obligation=(page:Page,name='התחייבות סינתטית')=>page.getByRole('article',{name:`התחייבות ${name}`,exact:true});
@@ -67,7 +68,7 @@ test('network failure and obsolete responses clear protected obligations on revo
   await page.route('**/rest/v1/rpc/obligations_snapshot',r=>r.abort('failed'));await page.getByRole('button',{name:'רענון התחייבויות וראיות'}).click();await expect(page.getByRole('alert')).toBeVisible();await expect(obligation(page)).toHaveCount(0);await page.unroute('**/rest/v1/rpc/obligations_snapshot');await page.getByRole('button',{name:'רענון התחייבויות וראיות'}).click();await expect(obligation(page)).toBeVisible();
   let release!:()=>void,intercepted=false;const gate=new Promise<void>(resolve=>{release=resolve;});await page.route('**/rest/v1/rpc/obligations_snapshot',async route=>{if(intercepted){await route.continue();return;}const response=await route.fetch();intercepted=true;await gate;await route.fulfill({response});});
   await page.getByRole('button',{name:'רענון התחייבויות וראיות'}).click();try{await expect.poll(()=>intercepted).toBe(true);localSql(`update finance.household_members set status='REVOKED' where household_id='${uuid(f.households[0])}';`);await page.evaluate(()=>window.dispatchEvent(new Event('focus')));await expect(page.getByText('אין כרגע גישה לבית.',{exact:true})).toBeVisible();}finally{release();}
-  await expect(obligation(page)).toHaveCount(0);await page.getByRole('link',{name:'הבית המשותף',exact:true}).click();await page.getByRole('button',{name:'יציאה',exact:true}).click();await expect(page).toHaveURL(/\/sign-in/);await page.goto('/obligations');await expect(page).toHaveURL(/\/sign-in/);await expect(obligation(page)).toHaveCount(0);
+  await expect(obligation(page)).toHaveCount(0);await navigateTo(page, 'הבית המשותף');await page.getByRole('button',{name:'יציאה',exact:true}).click();await expect(page).toHaveURL(/\/sign-in/);await page.goto('/obligations');await expect(page).toHaveURL(/\/sign-in/);await expect(obligation(page)).toHaveCount(0);
  }finally{await f.cleanup();}
 });
 test('a corrected actual payment becomes stale until explicit unlink and new review',async({page})=>{

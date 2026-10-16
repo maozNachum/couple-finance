@@ -1,3 +1,4 @@
+import { navigateTo } from '../navigation';
 import { test,expect } from '@playwright/test';
 import { randomUUID } from 'node:crypto';
 import AxeBuilder from '@axe-core/playwright';
@@ -86,7 +87,7 @@ test('revalidation clears protected dashboard on network uncertainty, revocation
     } finally {release();}
     await expect(page.getByText('אין כרגע גישה לבית.',{exact:true})).toBeVisible();
     await expect(page.getByRole('heading',{name:'שווי נקי',exact:true})).toHaveCount(0);
-    await page.getByRole('link',{name:'הבית המשותף',exact:true}).click();
+    await navigateTo(page, 'הבית המשותף');
     await page.getByRole('button',{name:'יציאה',exact:true}).click();
     await expect(page).toHaveURL(/\/sign-in/);
     await page.goto('/dashboard');

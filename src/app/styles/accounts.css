@@ -44,3 +44,35 @@
 .obligations-panel input[type="checkbox"] { display: inline-block; width: auto; margin-inline-end: .5rem; }
 .obligations-panel article > button { margin-inline-end: .5rem; margin-block-start: .5rem; }
 .obligations-panel [role="group"] { display: grid; gap: .75rem; }
+
+/* Keep controls and evidence comfortable at narrow widths without clipping data. */
+.accounts-panel { min-inline-size: 0; line-height: 1.6; }
+.accounts-panel > *, .accounts-toolbar > * { min-inline-size: 0; max-inline-size: 100%; }
+.accounts-toolbar > label { flex: 1 1 12rem; }
+.accounts-panel input, .accounts-panel select, .accounts-panel button { min-block-size: 44px; font-size: 16px; }
+.accounts-panel input[type="date"], .accounts-panel input[type="month"], .accounts-panel input[inputmode="decimal"] { direction: ltr; }
+.accounts-panel input[type="checkbox"] { inline-size: 24px; min-block-size: 24px; display: inline-block; vertical-align: middle; }
+.accounts-panel summary { cursor: pointer; min-block-size: 44px; padding-block: 10px; overflow-wrap: anywhere; }
+.accounts-panel .account-form fieldset { display: grid; gap: 1rem; min-inline-size: 0; margin: 0; padding: 1rem; border: 1px solid #ccd6ce; border-radius: .5rem; }
+.accounts-panel .account-form label { display: grid; gap: .35rem; min-inline-size: 0; }
+.accounts-panel .account-form label:has(input[type="checkbox"]) { display: block; }
+.accounts-panel .account-form legend { max-inline-size: 100%; overflow-wrap: anywhere; }
+.accounts-panel a { text-decoration: underline; text-underline-offset: 3px; }
+.accounts-panel .section-links { display: flex; flex-wrap: wrap; gap: .5rem 1rem; }
+.section-links a { display: inline-flex; align-items: center; min-block-size: 44px; }
+.accounts-panel [role="status"], .accounts-panel [role="alert"] { overflow-wrap: anywhere; }
+.signed-amount { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: .5rem; align-items: end; }
+.signed-amount label { min-inline-size: 0; }
+.accounts-panel .signed-amount button { padding-inline: .75rem; }
+.observation-history { margin: 0; }
+.history-heading:focus { outline: 3px solid var(--focus); outline-offset: 3px; }
+@media (max-width: 639px) {
+  .account-card { padding: 1rem; }
+  .observation-history { padding-inline-start: 1rem; }
+  .transaction-form fieldset { padding: .75rem; }
+  .transaction-form fieldset fieldset { margin-inline: 0; }
+  .dashboard-metrics { gap: .75rem; }
+  .accounts-panel li { overflow-wrap: anywhere; }
+}
+.history-pages { display: flex; flex-wrap: wrap; align-items: center; gap: .75rem; }
+.history-pages span { flex: 1 1 10rem; }

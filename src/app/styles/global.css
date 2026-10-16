@@ -88,3 +88,23 @@ h1 { font-size: clamp(28px, 3vw, 40px); line-height: 1.3; letter-spacing: -1.4px
   .footer { margin-inline: 48px; }
 }
  .quality-finding { overflow-wrap: anywhere; }
+
+/* One navigation tree: CSS changes layout without remounting financial forms. */
+.primary-nav { display: block; margin-block-start: 16px; }
+.daily-nav { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; }
+.daily-nav a { flex-direction: column; gap: 6px; padding: 10px 2px; text-align: center; font-size: 12px; }
+.nav-toggle { display: flex; justify-content: center; align-items: center; gap: 8px; inline-size: 100%; min-block-size: 44px; margin-block-start: 8px; border: 1px solid var(--line); border-radius: 8px; background: white; color: var(--forest); font: inherit; cursor: pointer; }
+.secondary-nav { display: none; }
+.secondary-nav.is-open { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px; margin-block-start: 8px; }
+.secondary-nav a { padding: 10px 8px; gap: 8px; overflow-wrap: anywhere; }
+@media (max-width: 639px) {
+  .sidebar { padding: 12px 16px; }
+  .topbar { min-block-size: 44px; padding-inline: 16px; }
+  .page { padding: 24px 16px 36px; }
+}
+@media (min-width: 1024px) {
+  .daily-nav, .secondary-nav, .secondary-nav.is-open { display: grid; grid-template-columns: 1fr; gap: 4px; }
+  .daily-nav a { flex-direction: row; text-align: start; font-size: 14px; padding: 13px 16px; gap: 12px; }
+  .nav-toggle { display: none; }
+  .secondary-nav { margin-block-start: 12px; padding-block-start: 12px; border-block-start: 1px solid var(--line); }
+}

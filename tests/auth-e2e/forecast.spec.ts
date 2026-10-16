@@ -1,3 +1,4 @@
+import { navigateTo } from '../navigation';
 import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import { obligationFixture } from '../integration/obligation-fixture.mjs';
@@ -10,7 +11,7 @@ async function login(page:Page,f:Fixture) {
   await page.goto(`/auth/confirm#token_hash=${link.data.properties.hashed_token}&type=email`);
   await page.getByRole('button',{name:'אישור כניסה'}).click();
   await expect(page.getByRole('heading',{name:'Synthetic household A'})).toBeVisible();
-  await page.getByRole('link',{name:'תחזית תזרים',exact:true}).click();
+  await navigateTo(page, 'תחזית תזרים');
   await expect(page.getByLabel('תאריך יתרת פתיחה בסוף היום')).toBeVisible();
   await page.getByLabel('תאריך יתרת פתיחה בסוף היום').fill('2026-10-01');
   await page.getByRole('combobox',{name:`זמינות ${f.bank.account.name}`,exact:true}).selectOption('INCLUDE');
@@ -69,7 +70,7 @@ test('network failures, revoked unchanged JWT and obsolete responses never resto
       await expect(page.getByText('אין כרגע גישה לבית.',{exact:true})).toBeVisible();
     } finally {release();}
     await expect(page.getByText(f.bank.account.name,{exact:true})).toHaveCount(0);
-    await page.getByRole('link',{name:'הבית המשותף',exact:true}).click();
+    await navigateTo(page, 'הבית המשותף');
     await page.getByRole('button',{name:'יציאה',exact:true}).click();
     await expect(page).toHaveURL(/\/sign-in/);await page.goto('/forecast');await expect(page).toHaveURL(/\/sign-in/);
     await expect(page.getByText(f.bank.account.name,{exact:true})).toHaveCount(0);

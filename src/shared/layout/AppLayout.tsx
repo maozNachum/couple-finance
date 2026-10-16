@@ -1,11 +1,27 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import { HomeMark } from '@/shared/ui/HomeMark';
+
+const daily = [
+  ['/dashboard', 'תמונת מצב', '◫'], ['/accounts', 'חשבונות', '▤'],
+  ['/transactions', 'תנועות ויתרות', '↔'], ['/budgets', 'תקציבים', '▦'],
+] as const;
+const secondary = [
+  ['/obligations', 'התחייבויות', '↻'], ['/forecast', 'תחזית תזרים', '▥'],
+  ['/data-quality', 'איכות המידע', 'ⓘ'], ['/categories', 'קטגוריות וסיווג', '◎'],
+  ['/imports', 'הכנת CSV', '↑'], ['/reconciliation', 'התאמת תנועות', '⇄'],
+  ['/household', 'הבית המשותף', '⌂'], ['/sign-in', 'כניסה', '↗'],
+  ['/', 'הבית שלנו', '⌂'], ['/about', 'על המרחב', '◎'],
+] as const;
 
 export function AppLayout() {
   const { pathname } = useLocation();
   const previousPath = useRef(pathname);
   const main = useRef<HTMLElement>(null);
+  const toggle = useRef<HTMLButtonElement>(null);
+  const [menuPath, setMenuPath] = useState<string | null>(null);
+  const expanded = menuPath === pathname;
+  const secondaryActive = secondary.find(([path]) => path === pathname)?.[1];
 
   useEffect(() => {
     if (previousPath.current !== pathname) {
@@ -22,20 +38,16 @@ export function AppLayout() {
           <span className="brand-mark"><HomeMark /></span>
           <span><b dir="ltr">Couple Finance</b><small>הבית הפיננסי שלנו</small></span>
         </NavLink>
-        <nav className="primary-nav" aria-label="ניווט ראשי">
-          <NavLink to="/" end><span aria-hidden="true">⌂</span>הבית שלנו</NavLink>
-          <NavLink to="/about"><span aria-hidden="true">◎</span>על המרחב</NavLink>
-          <NavLink to="/household"><span aria-hidden="true">⌂</span>הבית המשותף</NavLink>
-          <NavLink to="/accounts"><span aria-hidden="true">▤</span>חשבונות</NavLink>
-          <NavLink to="/dashboard"><span aria-hidden="true">◫</span>תמונת מצב</NavLink>
-          <NavLink to="/budgets"><span aria-hidden="true">▦</span>תקציבים</NavLink>
-          <NavLink to="/obligations"><span aria-hidden="true">↻</span>התחייבויות</NavLink>
-          <NavLink to="/forecast"><span aria-hidden="true">▥</span>תחזית תזרים</NavLink>
-          <NavLink to="/data-quality"><span aria-hidden="true">ⓘ</span>איכות המידע</NavLink>
-          <NavLink to="/transactions"><span aria-hidden="true">↔</span>תנועות ויתרות</NavLink>
-          <NavLink to="/imports"><span aria-hidden="true">↑</span>הכנת CSV</NavLink>
-          <NavLink to="/reconciliation"><span aria-hidden="true">⇄</span>התאמת תנועות</NavLink>
-          <NavLink to="/sign-in"><span aria-hidden="true">↗</span>כניסה</NavLink>
+        <nav className="primary-nav" aria-label="ניווט ראשי" onKeyDown={event => {
+          if (event.key === 'Escape' && expanded) { setMenuPath(null); toggle.current?.focus(); }
+        }}>
+          <div className="daily-nav">{daily.map(([path, label, icon]) => <NavLink key={path} to={path} onClick={() => setMenuPath(null)}><span aria-hidden="true">{icon}</span>{label}</NavLink>)}</div>
+          <button className="nav-toggle" ref={toggle} aria-expanded={expanded} aria-controls="secondary-nav" onClick={() => setMenuPath(expanded ? null : pathname)}>
+            {expanded ? 'סגירת תפריט' : 'עוד פעולות'}{secondaryActive && <small> · {secondaryActive}</small>}<span aria-hidden="true">{expanded ? '−' : '+'}</span>
+          </button>
+          <div id="secondary-nav" className={`secondary-nav${expanded ? ' is-open' : ''}`}>
+            {secondary.map(([path, label, icon]) => <NavLink key={path} to={path} end={path === '/'} onClick={() => setMenuPath(null)}><span aria-hidden="true">{icon}</span>{label}</NavLink>)}
+          </div>
         </nav>
         <div className="household-note">
           <span className="initials" aria-hidden="true">מ ש</span>
