@@ -1,3 +1,4 @@
+import { navigateTo } from '../navigation';
 import { test,expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import { budgetFixture } from '../integration/budget-fixture.mjs';
@@ -79,7 +80,7 @@ test('network revalidation and obsolete responses clear plans on revocation and 
   await page.route('**/rest/v1/rpc/budget_snapshot',async route=>{if(intercepted){await route.continue();return;}const response=await route.fetch();intercepted=true;await gate;await route.fulfill({response});});
   await page.getByRole('button',{name:'רענון תוכניות וראיות'}).click();
   try{await expect.poll(()=>intercepted).toBe(true);localSql(`update finance.household_members set status='REVOKED' where household_id='${uuid(f.households[0])}';`);await page.evaluate(()=>window.dispatchEvent(new Event('focus')));await expect(page.getByText('אין כרגע גישה לבית.',{exact:true})).toBeVisible();}finally{release();}
-  await expect(total(page)).toHaveCount(0);await page.getByRole('link',{name:'הבית המשותף',exact:true}).click();await page.getByRole('button',{name:'יציאה',exact:true}).click();
+  await expect(total(page)).toHaveCount(0);await navigateTo(page, 'הבית המשותף');await page.getByRole('button',{name:'יציאה',exact:true}).click();
   await expect(page).toHaveURL(/\/sign-in/);await page.goto('/budgets');await expect(page).toHaveURL(/\/sign-in/);await expect(page.getByText('1234.00 ILS',{exact:true})).toHaveCount(0);
  }finally{await f.cleanup();}
 });

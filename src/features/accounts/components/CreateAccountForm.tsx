@@ -22,7 +22,7 @@ export function CreateAccountForm({ data, submit, busy }: { data: Data; submit: 
     <label>מטבע החשבון<select name="currency" defaultValue="ILS">{['ILS','USD','EUR','JPY','KWD'].map((c) => <option key={c}>{c}</option>)}</select></label>
     <label>מטבע השווי<select name="valuationCurrency" defaultValue="ILS">{['ILS','USD','EUR','JPY','KWD'].map((c) => <option key={c}>{c}</option>)}</select></label>
     <label>מדיניות יתרה<select value={policy} disabled={type === 'CASH'} onChange={(event) => setPolicy(event.target.value)}><option value="OBSERVED">תצפיות שווי מתוארכות</option><option value="LEDGER">יתרה מתנועות</option></select></label>
-    <p>המטבעות, הבעלות והמדיניות קבועים לאחר יצירה. בחשבון מתנועות לא תוצג יתרה עד הוספת ספר התנועות בשלב הבא.</p>
+    <p>המטבעות, הבעלות והמדיניות קבועים לאחר יצירה. בחשבון מתנועות נדרשת יתרת פתיחה במסך תנועות ויתרות כדי לחשב יתרה.</p>
     <button disabled={busy}>יצירת חשבון</button>
   </form>;
 }

@@ -1,3 +1,4 @@
+import { navigateTo } from '../navigation';
 import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import { obligationFixture } from '../integration/obligation-fixture.mjs';
@@ -10,7 +11,7 @@ async function login(page:Page,f:Fixture) {
   await page.goto(`/auth/confirm#token_hash=${link.data.properties.hashed_token}&type=email`);
   await page.getByRole('button',{name:'אישור כניסה'}).click();
   await expect(page.getByRole('heading',{name:'Synthetic household A'})).toBeVisible();
-  await page.getByRole('link',{name:'איכות המידע',exact:true}).click();
+  await navigateTo(page, 'איכות המידע');
   await expect(page.getByLabel('תאריך בדיקת יתרות')).toBeVisible();
   await page.getByLabel('תאריך בדיקת יתרות').fill('2026-10-14');
   await page.getByLabel('חודש הדיווח').fill('2026-10');
@@ -41,7 +42,7 @@ test('known evidence, actionable findings, explicit forecast and mobile RTL acce
     await opening.getByRole('link').focus();await page.keyboard.press('Enter');
     await expect(page).toHaveURL(/\/transactions/);
     await expect(page.getByRole('heading',{name:'תנועות ויתרות',exact:true})).toBeVisible();
-    await page.getByRole('link',{name:'איכות המידע',exact:true}).click();
+    await navigateTo(page, 'איכות המידע');
     await expect(page.getByLabel('תאריך בדיקת יתרות')).toBeVisible();
     await page.screenshot({path:info.outputPath('data-quality-rtl.png'),fullPage:true});
     expect(await page.evaluate(async()=>({local:localStorage.length,session:sessionStorage.length,databases:(await indexedDB.databases()).length}))).toEqual({local:0,session:0,databases:0});
@@ -69,7 +70,7 @@ test('network failure and revoked membership cannot restore late protected findi
       await expect(page.getByText('אין כרגע גישה לבית.',{exact:true})).toBeVisible();
     }finally{release();}
     await expect(page.locator('.quality-finding')).toHaveCount(0);
-    await page.getByRole('link',{name:'הבית המשותף',exact:true}).click();
+    await navigateTo(page, 'הבית המשותף');
     await page.getByRole('button',{name:'יציאה',exact:true}).click();
     await expect(page).toHaveURL(/\/sign-in/);await page.goto('/data-quality');await expect(page).toHaveURL(/\/sign-in/);
   }finally{await f.cleanup();}
@@ -96,7 +97,7 @@ test('late responses after household selection or logout cannot restore previous
     let releaseLogout!:()=>void,held=false;const logoutGate=new Promise<void>(resolve=>{releaseLogout=resolve;});
     await page.route('**/rest/v1/rpc/data_quality_snapshot',async route=>{const response=await route.fetch();held=true;await logoutGate;await route.fulfill({response});});
     await page.getByRole('button',{name:'רענון איכות המידע'}).click();
-    try {await expect.poll(()=>held).toBe(true);await page.getByRole('link',{name:'הבית המשותף',exact:true}).click();await page.getByRole('button',{name:'יציאה',exact:true}).click();await expect(page).toHaveURL(/\/sign-in/);}finally{releaseLogout();}
+    try {await expect.poll(()=>held).toBe(true);await navigateTo(page, 'הבית המשותף');await page.getByRole('button',{name:'יציאה',exact:true}).click();await expect(page).toHaveURL(/\/sign-in/);}finally{releaseLogout();}
     await expect(page.locator('.quality-finding')).toHaveCount(0);
     await page.goto('/data-quality');await expect(page).toHaveURL(/\/sign-in/);
   }finally{await f.cleanup();}

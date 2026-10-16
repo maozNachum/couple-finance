@@ -4,6 +4,7 @@ import type { TransactionRevision } from '@finance/contracts/ledger';
 import type { HouseholdMember } from '@finance/contracts/household';
 import type { Allocation } from '@finance/contracts/allocation';
 import { effects, statuses, today } from '../model/presentation';
+import { SignedAmountInput } from '@/shared/ui/SignedAmountInput';
 
 type DraftSplit = Omit<Allocation, 'id' | 'money'> & { id: string; money: { amount: string; currency: string } };
 
@@ -33,12 +34,12 @@ export function TransactionForm({ record, correction, members, disabled, submit 
         <label>תאריך התנועה<input name="date" type="date" min="0001-01-01" max="9999-12-31" required defaultValue={today()} /></label>
       </>}
       <label>תיאור<input name="description" required maxLength={2000} defaultValue={correction?.transaction.description ?? ''} /></label>
-      <label>סכום התנועה ב־{account.currency}<input name="amount" dir="ltr" inputMode="decimal" required defaultValue={correction?.transaction.money.amount ?? ''} /></label>
+      <SignedAmountInput name="amount" label={`סכום התנועה ב־${account.currency}`} signLabel="החלפת סימן התנועה" defaultValue={correction?.transaction.money.amount ?? ''} />
       <p>סכום חיובי מגדיל את היתרה; סכום שלילי מקטין אותה. בחרו את המשמעות בנפרד. העברה לחיסכון אינה הוצאה; החזר הוצאה מסומן כהוצאה בסכום חיובי.</p>
       <label>מצב<select name="status" defaultValue={correction?.transaction.status ?? 'POSTED'}>{Object.entries(statuses).filter(([s]) => s !== 'PENDING' || (kind !== 'OPENING' && correction?.transaction.status !== 'POSTED')).map(([s, label]) => <option key={s} value={s}>{label}</option>)}</select></label>
       {kind === 'OPENING' && <label>שלמות יתרת הפתיחה<select name="coverage" defaultValue={correction?.openingCoverage ?? 'COMPLETE'}><option value="COMPLETE">מלאה — היתרה ידועה</option><option value="PARTIAL">חלקית — חסרים נתונים</option></select></label>}
       {splits.map((s, i) => <fieldset key={s.id}><legend>חלוקה {i + 1}</legend>
-        <label>סכום חלוקה {i + 1}<input name={`split-${i}`} dir="ltr" inputMode="decimal" required defaultValue={s.money.amount} /></label>
+        <SignedAmountInput name={`split-${i}`} label={`סכום חלוקה ${i + 1}`} signLabel={`החלפת סימן בחלוקה ${i + 1}`} defaultValue={s.money.amount} />
         {kind !== 'OPENING' && <label>משמעות חלוקה {i + 1}<select name={`effect-${i}`} defaultValue={s.effect}>{Object.entries(effects).map(([effect, label]) => <option key={effect} value={effect}>{label}</option>)}</select></label>}
         <label>שיוך חלוקה {i + 1}<select name={`owner-${i}`} defaultValue={s.ownership.kind === 'MEMBER' ? s.ownership.memberId : 'HOUSEHOLD'}><option value="HOUSEHOLD">משותף לבית</option>{members.filter((m) => m.householdId === account.householdId).map((m) => <option key={m.id} value={m.id}>{m.displayName}{m.status === 'REVOKED' ? ' (היסטורי)' : ''}</option>)}</select></label>
         {splits.length > 1 && <button type="button" onClick={() => setSplits(splits.filter((v) => v.id !== s.id))}>הסרת חלוקה {i + 1}</button>}
