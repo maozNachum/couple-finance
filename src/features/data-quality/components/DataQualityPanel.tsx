@@ -8,6 +8,7 @@ import { financialDataQuality } from '@finance/domain/data-quality';
 import { safeErrorSchema } from '@finance/contracts/safe-error';
 import { loadDataQuality } from '../api/data-quality';
 import { currentDay, coverageText, moduleText, typeText, reasonText, actions } from '../model/presentation';
+import { accountHref } from '@/shared/navigation/account-context';
 
 export function DataQualityPanel() {
   const navigate=useNavigate(),generation=useRef(0);
@@ -77,7 +78,7 @@ export function DataQualityPanel() {
           <ul>{[...new Set(f.evidence.map(e=>e.measuredOn||e.recordedAt||e.currency?`תאריך פיננסי: ${e.measuredOn??'לא צוין'} · נרשם: ${e.recordedAt??'לא צוין'} · מטבע מקורי: ${e.currency??'לא צוין'}`:''))].filter(Boolean).slice(0,3).map(line=><li key={line}>{line}</li>)}</ul>
           {f.type==='HISTORICAL_FX'&&<p>כיוון ותאריך ההמרה: <bdi>{f.subject.id}</bdi></p>}
           {f.limitation&&<p>{f.limitation}</p>}
-          {f.action&&<Link to={actions[f.action].path}>{actions[f.action].label}</Link>}
+          {f.action&&<Link to={f.subject.kind==='ACCOUNT' && (f.action==='ACCOUNTS'||f.action==='TRANSACTIONS') && accounts.some(a=>a.account.id===f.subject.id) ? accountHref(f.action==='ACCOUNTS'?'/accounts':'/transactions',{id:f.subject.id,householdId}) : actions[f.action].path}>{actions[f.action].label}</Link>}
           <details><summary>כל {f.evidence.length} מקורות הראיות והתוצאות המושפעות</summary>
             <p>זהות הנושא: <bdi>{f.subject.id}</bdi>. יש לבחור את הבית והנושא במסך הבדיקה; הגישה נבדקת שם מחדש.</p>
             <ul>{f.evidence.map(e=><li key={`${e.kind}/${e.id}/${e.version}`}><bdi>{e.id}</bdi> · תאריך פיננסי: {e.measuredOn??'לא צוין'} · נרשם: {e.recordedAt??'לא צוין'} · מטבע מקורי: {e.currency??'לא צוין'}{e.kind==='SOURCE'&&` · סמכות מקור מתאריך: ${e.authorityFrom??'לא מונתה'}`}{e.version!==null&&` · גרסה ${e.version}`}{e.sourceId&&<> · מקור <bdi>{e.sourceId}</bdi></>}</li>)}</ul>

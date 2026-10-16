@@ -29,7 +29,7 @@ test('known evidence, actionable findings, explicit forecast and mobile RTL acce
     await expect(page.getByRole('heading',{name:'2 נושאים לבירור בנתונים הידועים'})).toBeVisible();
     const opening=page.locator('article').filter({has:page.getByRole('heading',{name:`ראיות יתרה — ${missing.account.name}`})});
     await expect(opening).toContainText('שווי נקי');await expect(opening).toContainText('הכנסות והוצאות בחודש');
-    await expect(opening.getByRole('link',{name:'בדיקת תנועות ויתרות פתיחה'})).toHaveAttribute('href','/transactions');
+    await expect(opening.getByRole('link',{name:'בדיקת תנועות ויתרות פתיחה'})).toHaveAttribute('href',`/transactions?household=${missing.account.householdId}&account=${missing.account.id}`);
     await page.getByText('בדיקת ראיות לתחזית ל־30 יום',{exact:true}).click();
     await page.getByLabel('לכלול בדיקת תחזית לפי בחירות מפורשות').check();
     await page.getByLabel('כרית מזומן מפורשת',{exact:true}).fill('0');

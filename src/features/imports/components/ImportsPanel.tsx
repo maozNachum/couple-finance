@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { accountHref } from '@/shared/navigation/account-context';
 import { browserClient } from '@/shared/infrastructure/supabase-client';
 import { csvFailureSchema, importLimits, type ImportPreview, type UploadRecord, type ColumnMapping } from '@finance/contracts/import-preview';
 import { loadImports, importCommand, uploadBytes, processUpload, cancelUpload } from '../api/imports';
@@ -11,6 +12,8 @@ import { safeErrorSchema } from '@finance/contracts/safe-error';
 import type { ImportReview, ImportCommitCommand } from '@finance/contracts/import-commit';
 
 export function ImportsPanel(){
+ const [params]=useSearchParams();
+ const initialContext=useRef({household:params.get('household')??'',account:params.get('account')??'',applied:false});
  const [review,setReview]=useState<ImportReview|null>(null),[mapped,setMapped]=useState<ColumnMapping|null>(null);
  const [pendingCommit,setPendingCommit]=useState<ImportCommitCommand|null>(null),[checking,setChecking]=useState(false);
  const pendingCommitRef=useRef<{householdId:string;accountId:string;sourceId:string;command:ImportCommitCommand}|null>(null);
@@ -31,6 +34,15 @@ export function ImportsPanel(){
    try{const next=await loadImports();if(!live||ticket!==epoch.current)return;
     if(retained&&pendingCommitRef.current===retained&&(!next.households.some(h=>h.id===retained.householdId)||!next.accounts.some(a=>a.account.id===retained.accountId&&a.account.householdId===retained.householdId&&a.sources.some(source=>source.id===retained.sourceId&&source.kind==='FILE_IMPORT')))){clearProtected(true);setMessage('הגישה להקשר היבוא אינה זמינה עוד. התצוגה והבקשה נמחקו; בדקו את ההרשאות.');}
     setData(next);
+    if(!initialContext.current.applied){
+     initialContext.current.applied=true;
+     const hint=initialContext.current;
+     if(hint.household||hint.account){
+      const target=next.accounts.find(a=>a.account.id===hint.account&&a.account.householdId===hint.household&&a.account.status==='ACTIVE'&&next.households.some(h=>h.id===hint.household));
+      if(target){setHousehold(target.account.householdId);setAccountId(target.account.id);setSourceId(target.manualSourceId);}
+      else setMessage('הקשר היבוא המבוקש אינו זמין בהרשאות הנוכחיות או שהחשבון בארכיון. בחרו הקשר מורשה במפורש.');
+     }
+    }
    }catch(error){if(!live||ticket!==epoch.current)return;const safe=safeErrorSchema.safeParse(error);
     if(safe.success&&safe.data.code==='NOT_AUTHORIZED'){clearProtected(true);setFailed(true);}
     else if(retained)setMessage('לא ניתן לאמת מחדש את הגישה. בקשת הניסיון החוזר נשמרה בזיכרון; כל ניסיון שמירה יבדוק שוב הרשאה בשרת.');
@@ -48,6 +60,7 @@ export function ImportsPanel(){
  async function inspect(record:UploadRecord,mapping:ColumnMapping|null){if(!delimiter)return;const ticket=epoch.current;setPreview(null);clearReview();const next=await processUpload({id:record.id,format:{encoding:'UTF-8',delimiter},mapping});if(ticket!==epoch.current)return;setHeaders(next.headers);setUpload(record);setMapped(mapping);if(mapping)setPreview(next);else setMessage('הקובץ נקרא כ־UTF-8. בחרו מיפוי מפורש כדי לבדוק את השורות.');}
  const disabled=checking||busy||Boolean(pending);
  return <section className="accounts-panel categorization-panel" aria-label="הכנת קובץ CSV"><h1>הכנת קובץ CSV</h1><p>העלאה פרטית ותצוגה מקדימה אינן שומרות תנועות. שמירה כספית תתבצע רק לאחר סקירה, בחירה ואישור מפורש.</p><Link to="/accounts">חזרה לחשבונות</Link>
+ <p>ייבוא קובץ הוא קליטה בשליטתכם. תאריכי השורות אינם אישור לרצף פעילות או לכיסוי חיצוני מלא. לפני עזיבת בקשה שתוצאתה אינה ודאית, השלימו את בדיקת התוצאה באותו מסך.</p>
  <p>UTF-8 בלבד, עד 1 MiB, עד 2,000 שורות נתונים, 32 עמודות ו־2,048 תווים בתא. שורת כותרת נדרשת. אין תמיכה ב־Excel או בקידודים אחרים.</p>
  {message&&<p role="status">{message}</p>}{busy&&<p role="status">מעבדים את הבקשה…</p>}
  {failed?<p role="alert">לא ניתן לטעון את ההרשאות. <Link to="/sign-in">התחברו מחדש</Link></p>:!data?<p role="status">טוענים חשבונות וקבצים זמניים…</p>:<>
@@ -62,6 +75,7 @@ export function ImportsPanel(){
  <label>חשבון קיים<select required value={accountId} onChange={e=>{setPreview(null);clearReview();setUpload(null);setHeaders([]);setAccountId(e.target.value);setSourceId('');}}><option value="">בחרו חשבון</option>{accounts.map(a=><option key={a.account.id} value={a.account.id}>{a.account.name} · {a.account.currency}</option>)}</select></label>
  <label>מקור קיים<select required value={sourceId} onChange={e=>{setPreview(null);clearReview();setUpload(null);setHeaders([]);setSourceId(e.target.value);}}><option value="">בחרו מקור</option>{account?.sources.map(s=><option key={s.id} value={s.id}>{{MANUAL:'מקור ידני',FILE_IMPORT:'מקור קובץ',LIVE_SYNC:'מקור מסונכרן'}[s.kind]} · {s.id}</option>)}</select></label>
  <p>הבחירה אינה משנה את המקור הקובע ליתרה. בסקירה ייקבע מקור קובץ ייעודי ויציב לחשבון.</p>
+ {account&&<p>מטבע החשבון: <bdi>{account.account.currency}</bdi>. סכום חיובי מגדיל את הפוזיציה וערך שלילי מקטין אותה; בחרו במיפוי את פירוש הסימן של הקובץ. אין להפוך סימן רק בגלל סוג כרטיס או הלוואה. {account.account.balancePolicy==='OBSERVED'?'זהו חשבון תצפיות: הייבוא אינו מעדכן את שוויו.':'הייבוא אינו יוצר יתרת פתיחה.'}</p>}
  <label>קובץ CSV<input type="file" accept=".csv,text/csv" onChange={e=>{const f=e.target.files?.[0];setPreview(null);clearReview();setHeaders([]);if(f&&f.size>0&&f.size<=importLimits.bytes&&/\.csv$/i.test(f.name)&&f.name.length<=160){setFile(f);setMessage('הקובץ נבחר; טרם הועלה.');}else{setFile(null);setMessage('בחרו CSV שאינו ריק ועומד במגבלות הגודל והשם.');}}}/></label>
  <button disabled={!file||!delimiter}>העלאה פרטית והכנת מיפוי</button></fieldset></form>
  {pending&&<button disabled={busy} onClick={()=>setGeneration(g=>g+1)}>בדיקת מצב הבקשה לפני ניסיון חוזר</button>}
@@ -75,6 +89,7 @@ export function ImportsPanel(){
  {preview&&upload&&mapped&&delimiter&&!review&&<button disabled={busy} onClick={()=>{void work(async()=>{const ticket=epoch.current;const next=await reviewImport({action:'REVIEW',id:upload.id,format:{encoding:'UTF-8',delimiter},mapping:mapped});if(ticket===epoch.current)setReview(next);});}}>סקירת כפילויות ובחירת שורות ליבוא</button>}
  {review&&<ImportReviewPanel key={review.id} review={review} context={data.accounts.find(a=>a.account.id===review.accountId)?.account.name+' · '+data.households.find(h=>h.id===review.householdId)?.name+' · '+upload?.filename} checking={checking} pending={pendingCommit} onPending={command=>{pendingCommitRef.current=command?{command,householdId:review.householdId,accountId:review.accountId,sourceId:review.sourceId}:null;setPendingCommit(command);}} onUnauthorized={()=>{epoch.current++;clearProtected(true);setChecking(false);setFailed(true);}} onRunning={value=>{inFlight.current=value;setBusy(value);}}/>}
  <section aria-label="תיעוד יבוא שנשמר"><h2>יבוא שנשמר</h2><p>התיעוד נשאר לאחר פקיעת הקובץ. רענון טוען תוצאות שמירה מאושרות גם לאחר ניתוק.</p>{data.evidence.map(e=><details key={e.reviewId}><summary>{e.committed} תנועות · {data.accounts.find(a=>a.account.id===e.accountId)?.account.name}</summary><p>סקירה: <bdi>{e.reviewId}</bdi> · מקור: <bdi>{e.sourceId}</bdi></p><p className="import-fingerprint">טביעת קובץ: <bdi>{e.contentHash}</bdi></p><p>נשמרו {e.committed} · דולגו {e.skipped} · שגויות {e.invalid} · חסרות מידע {e.unresolved}</p>{e.transactions.map(t=><p key={t.transactionId}>רשומה {t.row}: <bdi>{t.transactionId}</bdi> · גרסה <bdi>{t.revisionId}</bdi></p>)}<Link to="/transactions">היסטוריית תנועות</Link></details>)}</section>
+ <nav className="section-links" aria-label="המשך לאחר קליטת מידע">{account&&<><Link to={accountHref('/accounts',account.account)}>בדיקת ראיות החשבון</Link><Link to={accountHref('/transactions',account.account)}>בדיקת היסטוריית החשבון</Link></>}<Link to="/reconciliation">בדיקת התאמות וסילוקים</Link><Link to="/data-quality">בדיקת איכות המידע</Link><Link to="/dashboard">בדיקת תמונת המצב</Link></nav>
  </>}
  </section>;
 }

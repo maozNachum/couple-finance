@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { browserClient } from '@/shared/infrastructure/supabase-client';
 import { manualTransactionCommandSchema } from '@finance/contracts/ledger';
 import type { ManualTransactionCommand, TransactionRevision } from '@finance/contracts/ledger';
@@ -12,8 +12,10 @@ import { TransactionForm } from './TransactionForm';
 
 export function TransactionsPanel() {
   const navigate = useNavigate();
+  const [params] = useSearchParams();
+  const requestedHousehold = params.get('household');
   const [data, setData] = useState<Awaited<ReturnType<typeof loadTransactions>> | null>(null);
-  const [selected, setSelected] = useState(''); const [asOf, setAsOf] = useState(today);
+  const [selected, setSelected] = useState(params.get('account') ?? ''); const [asOf, setAsOf] = useState(today);
   const [correction, setCorrection] = useState<TransactionRevision | null>(null);
   const [reload, setReload] = useState(0); const [failed, setFailed] = useState(false);
   const [queued, setQueued] = useState<ManualTransactionCommand | null>(null);
@@ -52,7 +54,7 @@ export function TransactionsPanel() {
       } else setMessage('לא ניתן לאשר אם הבקשה נשמרה. ניסיון חוזר ישלח את אותה בקשה ללא רישום כפול.');
     } finally { inFlight.current = false; setBusy(false); }
   }
-  const record = data?.accounts.find((r) => r.account.id === selected) ?? data?.accounts[0];
+  const record = selected ? data?.accounts.find((r) => r.account.id === selected && (!requestedHousehold || r.account.householdId === requestedHousehold)) : data?.accounts.find(r => !requestedHousehold || r.account.householdId === requestedHousehold);
   const history = data?.history.filter((r) => r.transaction.accountId === record?.account.id) ?? [];
   let current: readonly TransactionRevision[] = []; let historyError = false;
   try { if (record) current = currentTransactions(record, history); } catch { historyError = true; }
@@ -62,9 +64,10 @@ export function TransactionsPanel() {
   const visiblePage = Math.min(historyPage, historyPages - 1);
   return <section className="accounts-panel" aria-label="ניהול תנועות">
     {message && <p role="status">{message}</p>}
-    {failed ? <p role="alert">לא ניתן לטעון תנועות. <Link to="/sign-in">התחברו מחדש</Link></p> : !data ? <p role="status">טוענים תנועות…</p> : !record ? <p>אין חשבונות זמינים. <Link to="/accounts">לניהול חשבונות</Link></p> : <>
-      <div className="accounts-toolbar"><label>חשבון<select value={record.account.id} disabled={busy || Boolean(queued)} onChange={(e) => { setSelected(e.target.value); setCorrection(null); setHistoryPage(0); }}>{data.accounts.map((r) => <option key={r.account.id} value={r.account.id}>{r.account.name}{r.account.status === 'ARCHIVED' ? ' (בארכיון)' : ''}</option>)}</select></label>
+    {failed ? <p role="alert">לא ניתן לטעון תנועות. <Link to="/sign-in">התחברו מחדש</Link></p> : !data ? <p role="status">טוענים תנועות…</p> : !record ? <p>אין חשבונות זמינים. הקשר מבוקש שאינו זמין אינו מוחלף בחשבון אחר. <Link to="/accounts">לניהול חשבונות</Link></p> : <>
+      <div className="accounts-toolbar"><label>חשבון<select value={record.account.id} disabled={busy || Boolean(queued)} onChange={(e) => { setSelected(e.target.value); setCorrection(null); setHistoryPage(0); }}>{data.accounts.filter(r => !requestedHousehold || r.account.householdId === requestedHousehold).map((r) => <option key={r.account.id} value={r.account.id}>{r.account.name}{r.account.status === 'ARCHIVED' ? ' (בארכיון)' : ''}</option>)}</select></label>
         <label>יתרה לתאריך<input type="date" min="0001-01-01" max="9999-12-31" value={asOf} onChange={(e) => setAsOf(e.target.value)} /></label><button disabled={busy} onClick={() => setReload((n) => n + 1)}>רענון תנועות</button></div>
+      <p>חשבון נבחר: {record.account.name}. בחירת חשבון אינה משנה את שיוך החלוקות.</p>
       <div className="account-card" aria-live="polite">
         {balance?.state === 'NOT_LEDGER' ? <p>חשבון זה מבוסס תצפיות. התנועות אינן משנות את שוויו. <Link to="/accounts">לתצפיות השווי</Link></p> : balance?.state === 'UNKNOWN' ? <p>יתרה לא ידועה — {balance.reason === 'BEFORE_OPENING' ? 'התאריך קודם ליתרת הפתיחה.' : 'חסרה יתרת פתיחה פעילה.'}</p> : balance?.state === 'ERROR' || historyError ? <p role="alert">שגיאה בנתונים או בתאריך. לא ניתן לחשב יתרה.</p> : balance && <><p>{balance.state === 'KNOWN' ? 'יתרה מחושבת' : 'יתרה חלקית — חסרים נתונים'}: <bdi>{displayMoney(balance.money)}</bdi></p><p>יתרת פתיחה מ־{balance.openingDate}. החישוב כולל רק תנועות שנרשמו עד התאריך שנבחר.</p></>}
         <p>היתרות מוצגות במטבע החשבון לפי המידע המתוקן כיום. תנועות ממתינות ומבוטלות אינן משנות את היתרה.</p>
