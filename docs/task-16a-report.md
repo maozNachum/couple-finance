@@ -10,6 +10,10 @@ LEDGER/OBSERVED policy and archive status retain their canonical semantics.
 Registration follows the selected household and focuses the newly registered
 account after server confirmation. Unavailable requested context shows an
 explicit limitation instead of exposing another account's editor.
+Visual review shortened the always-visible inventory explanation and retained
+the full policy in an accessible disclosure; a household selector appears when
+there is a real choice or an unavailable requested household. Evidence states
+remain visible on account cards. This avoids displacing them with repeated text.
 
 Account cards expose opening dates when supported by the canonical calculation,
 distinguish a cutoff before opening from a missing opening, retain partial and
