@@ -1,5 +1,8 @@
 # Security boundaries
 
+Task 17 adds SELECT-only household RLS for goal heads/history and a narrow private checked planning command. Household then Auth user/session/member locks and the existing Task 16b wall-clock live-actor predicate precede receipt replay and persistence. Ownership is attribution, not privacy. Complete-payload receipts, optimistic versions, terminal archive, atomic minimal audit, bounded coherent reads and memory-only generation-guarded presentation retain existing boundaries. No financial writer is invoked. See [decisions](task-17-decisions.md).
+
+
 Task 16b revokes direct authenticated FX evidence INSERT. A create-only manual
 command derives an existing same-household MANUAL origin, locks live Auth and
 ACTIVE membership before mutation/receipt replay, and serializes exact pair/day

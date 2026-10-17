@@ -138,6 +138,12 @@
       ],
       "@finance/domain/data-quality": [
         "./supabase/functions/_shared/core/domain/data-quality.ts"
+      ],
+      "@finance/contracts/goals": [
+        "./supabase/functions/_shared/core/contracts/goals.ts"
+      ],
+      "@finance/domain/goals": [
+        "./supabase/functions/_shared/core/domain/goals.ts"
       ]
     }
   },

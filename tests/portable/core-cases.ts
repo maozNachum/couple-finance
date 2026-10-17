@@ -1,3 +1,4 @@
+import { goalCases } from './goal-cases.ts';
 import { qualityCases } from './data-quality-cases.ts';
 import { importCases } from './import-cases.ts';
 import { reconciliationCases } from './reconciliation-cases.ts';
@@ -28,7 +29,7 @@ import { ledgerCases } from './ledger-cases.ts';
 
 // One assertion corpus runs unchanged in Vitest/jsdom, permission-free Deno,
 // and an actual production-bundled browser under four runtime timezones.
-export const coreCases: { name: string; run: () => void }[] = [...qualityCases, ...ledgerCases, ...categorizationCases, ...importCases, ...reconciliationCases, ...reportingCases, ...budgetCases, ...obligationCases, ...forecastCases];
+export const coreCases: { name: string; run: () => void }[] = [...goalCases, ...qualityCases, ...ledgerCases, ...categorizationCases, ...importCases, ...reconciliationCases, ...reportingCases, ...budgetCases, ...obligationCases, ...forecastCases];
 function test(name: string, run: () => void): void { coreCases.push({ name, run }); }
 function equal(actual: unknown, expected: unknown): void {
   if (JSON.stringify(actual) !== JSON.stringify(expected)) throw new Error(`Expected ${JSON.stringify(expected)}, received ${JSON.stringify(actual)}`);
