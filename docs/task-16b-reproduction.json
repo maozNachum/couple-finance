@@ -1,0 +1,93 @@
+{
+  "syntheticOnly": true,
+  "persistence": "NONE",
+  "sourceValidation": "Static SQL audit; no database authorization claim",
+  "dates": {
+    "recognition": "2026-10-10",
+    "value": "2026-10-12",
+    "report": "2026-10-16",
+    "recorded": "2026-10-16T12:00:00Z"
+  },
+  "before": {
+    "original": {
+      "amount": "-10",
+      "currency": "USD"
+    },
+    "conversion": {
+      "original": {
+        "amount": "-10",
+        "currency": "USD"
+      },
+      "money": null,
+      "fx": null,
+      "reason": "MISSING_FX"
+    },
+    "priorObservationValue": {
+      "amount": "927.775",
+      "currency": "ILS"
+    },
+    "finding": {
+      "id": "dq1/00000000-0000-4000-8000-000000000001/HISTORICAL_FX/USD/ILS/2026-10-10",
+      "type": "HISTORICAL_FX",
+      "householdId": "00000000-0000-4000-8000-000000000001",
+      "subject": {
+        "kind": "FX_PAIR",
+        "id": "USD/ILS/2026-10-10"
+      },
+      "reasons": [
+        "MISSING_FX"
+      ],
+      "explanation": "ראיית ההמרה הדרושה חסרה או אינה חד־משמעית בכיוון ובתאריך הנדרשים. הסכומים במטבע המקורי נשמרים; אין שימוש בשער של היום.",
+      "state": "PARTIAL",
+      "evidence": [
+        {
+          "kind": "REVISION",
+          "id": "00000000-0000-4000-8000-000000001002",
+          "version": 1,
+          "sourceId": "00000000-0000-4000-8000-000000000110",
+          "measuredOn": "2026-10-10",
+          "recordedAt": "2026-10-16T12:00:00Z",
+          "currency": "USD"
+        }
+      ],
+      "impacts": [
+        {
+          "module": "MONTHLY",
+          "resultId": "2026-10/ILS",
+          "state": "PARTIAL"
+        }
+      ],
+      "action": null,
+      "limitation": "אפשר לבדוק ראיות שמורות ולהצהיר על שער ידני חסר. אין תיקון שער שמור או הכרעה בין שערים מתחרים.",
+      "observationAgeDays": null
+    }
+  },
+  "supportedEvidenceReuse": {
+    "consumption": {
+      "amount": "37",
+      "currency": "ILS"
+    },
+    "selectedRateId": "00000000-0000-4000-8000-000000000802",
+    "fxFindingAbsent": true,
+    "externalCoverage": "UNKNOWN",
+    "remainingReasons": [
+      "PARTIAL_OBSERVATION",
+      "NO_OPENING",
+      "MISSING_FX"
+    ]
+  },
+  "competing": {
+    "reason": "AMBIGUOUS_FX",
+    "eligibleIds": [
+      "00000000-0000-4000-8000-000000000802",
+      "00000000-0000-4000-8000-000000000803"
+    ]
+  },
+  "reconciliation": {
+    "noSelection": "MISSING_FX",
+    "explicitExact": "EXACT",
+    "explicitOther": "PARTIAL",
+    "reportingStill": "AMBIGUOUS_FX"
+  },
+  "assertions": "PASS"
+}

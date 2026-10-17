@@ -1,5 +1,15 @@
 # Security boundaries
 
+Task 16b revokes direct authenticated FX evidence INSERT. A create-only manual
+command derives an existing same-household MANUAL origin, locks live Auth and
+ACTIVE membership before mutation/receipt replay, and serializes exact pair/day
+missing checks with inline observation insertion. A narrow checked definer
+observation trigger calls a non-client-executable insertion helper, preserving
+atomic observation/FX writes and identical legacy snapshot reuse. New inline
+origins must exist in the household and match stored MANUAL kind. No source
+activation or legacy evidence rewrite occurs. Private receipts/minimal audit
+commit atomically. See [Task 16b decisions](task-16b-decisions.md).
+
 Task 14 adds only authenticated EXECUTE on `api.data_quality_snapshot()`, a STABLE SECURITY INVOKER function with an empty search path. Existing live Auth/session/member checks and RLS govern every underlying read. The Task 13 authorization performance functions/policies remain unchanged. There are no new tables, privileged helpers, write grants or persistent browser state. Combined byte/collection/graph bounds fail closed; supported action routes independently authorize reads. See [decisions](task-14-decisions.md).
 
 The Task 13 post-merge CI remediation adds a private STABLE fixed-search-path `live_household_ids()` helper. It uses the existing live Auth-session/user predicate and ACTIVE membership for the caller's `auth.uid()`, without caller-supplied identity. Only authenticated EXECUTE is granted. The three ledger SELECT policies materialize that authorized set once per statement, retaining invoker views, RLS and all existing DML denials. Nothing persists between statements; membership/session/user revocation is reevaluated on the next request. See [CI diagnosis and verification](task-13-ci-fix-report.md).

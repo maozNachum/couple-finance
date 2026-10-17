@@ -1,5 +1,13 @@
 # Architecture and placement
 
+Task 16b adds historical FX evidence diagnosis/intake within the existing
+data-quality feature, reusing its authorized snapshot and canonical calculators.
+The existing FX contract alias gains a strict manual declaration/response; no
+new alias or financial formula is added. One narrow command and forward security
+migration create only absent exact pair/day household evidence, derive manual
+origin and retain immutable receipts/audit. Inline observation FX shares its
+validated insertion boundary. See [decisions](task-16b-decisions.md).
+
 Task 14 adds `/data-quality` and two exact ES-only data-quality aliases. One additive STABLE invoker RPC nests the existing obligations/reporting graph once and adds bounded categories/budgets in the same MVCC statement snapshot. Pure core validates the complete graph, consumes existing calculators and groups explainable findings. No model formula or writer changes. See [decisions](task-14-decisions.md).
 
 Task 13 adds the `/forecast` feature and two exact ES-only forecast aliases. A read-only forecast consumes the unchanged bounded Task 12 snapshot; canonical `reportingPosition` is extracted without changing reporting semantics, so cash calculations do not depend on unrelated net-worth/monthly totals. Pure core owns accessibility, bounded daily events, deduplication, uncertainty and minimum-minus-buffer. Browser choices and buffer stay in memory; there is no new financial/planning writer. See [Task 13 decisions](task-13-decisions.md).

@@ -50,7 +50,11 @@ export function validateBackup(backup) {
     const bytes = Buffer.from(item.data, 'base64');
     requireThat(bytes.length === item.bytes && sha256(bytes) === item.sha256, 'ARCHIVE_INTEGRITY_FAILED');
   }
-  requireThat(Array.isArray(backup.objects) && backup.objects.length > 0 && backup.images && backup.migrations.length === 15, 'INCOMPLETE_EVIDENCE');
+  // Preserve retained Task 15 bundles; recognize only this reviewed forward
+  // schema in addition, rather than accepting arbitrary future migration counts.
+  const knownSchema = Array.isArray(backup.migrations) && (backup.migrations.length === 15 ||
+    backup.migrations.length === 16 && backup.migrations.at(-1) === '20261016144109');
+  requireThat(Array.isArray(backup.objects) && backup.objects.length > 0 && backup.images && knownSchema, 'INCOMPLETE_EVIDENCE');
   return backup;
 }
 
