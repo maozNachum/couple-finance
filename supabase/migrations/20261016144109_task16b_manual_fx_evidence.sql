@@ -24,6 +24,15 @@ create trigger fx_audit_immutable before update on private.fx_audit for each row
 -- Internal only, invoked by the checked command or trigger under their definer.
 -- Serializes standalone AND inline intake before account locks, and revocation
 -- before insertion/replay. No browser-controlled actor or authorization metadata.
+create function private.fx_actor_live(h uuid,actor uuid) returns boolean language sql volatile set search_path='' as $$
+ select private.has_live_session() and exists(
+  select 1 from auth.sessions s join auth.users u on u.id=s.user_id
+  join finance.household_members m on m.user_id=u.id and m.household_id=h and m.id=actor and m.status='ACTIVE'
+  where s.id::text=auth.jwt()->>'session_id' and s.user_id=auth.uid()
+   and (s.not_after is null or s.not_after>clock_timestamp())
+   and (u.banned_until is null or u.banned_until<=clock_timestamp())
+ );
+$$;
 create function private.lock_fx_actor(h uuid) returns uuid language plpgsql set search_path='' as $$
 declare actor uuid;
 begin
@@ -34,12 +43,7 @@ begin
  perform 1 from auth.sessions where id::text=auth.jwt()->>'session_id' and user_id=auth.uid() for share;
  if not found then raise insufficient_privilege; end if;
  select id into actor from finance.household_members where household_id=h and user_id=auth.uid() and status='ACTIVE' for share;
- if actor is null or not private.is_household_member(h) or not exists(
-  select 1 from auth.sessions s join auth.users u on u.id=s.user_id
-  where s.id::text=auth.jwt()->>'session_id' and s.user_id=auth.uid()
-   and (s.not_after is null or s.not_after>clock_timestamp())
-   and (u.banned_until is null or u.banned_until<=clock_timestamp())
- ) then raise insufficient_privilege; end if;
+ if actor is null or not private.fx_actor_live(h,actor) then raise insufficient_privilege; end if;
  return actor;
 end;
 $$;
@@ -49,7 +53,7 @@ $$;
 create function private.insert_manual_fx(h uuid,f jsonb,actor uuid,operation text) returns void language plpgsql set search_path='' as $$
 declare existing jsonb;
 begin
- if not private.is_household_member(h) or not exists(select 1 from finance.household_members where household_id=h and id=actor and user_id=auth.uid() and status='ACTIVE') then raise insufficient_privilege; end if;
+ if not private.fx_actor_live(h,actor) then raise insufficient_privilege; end if;
  if not private.account_uuid(f->'id') then raise check_violation; end if;
  select snapshot into existing from finance.fx_evidence where household_id=h and id=(f->>'id')::uuid;
  if found then
@@ -63,7 +67,7 @@ begin
  insert into private.fx_audit(household_id,rate_id,actor_member_id,operation) values(h,(f->>'id')::uuid,actor,operation);
 end;
 $$;
-revoke all on function private.lock_fx_actor(uuid),private.insert_manual_fx(uuid,jsonb,uuid,text) from public,anon,authenticated;
+revoke all on function private.fx_actor_live(uuid,uuid),private.lock_fx_actor(uuid),private.insert_manual_fx(uuid,jsonb,uuid,text) from public,anon,authenticated;
 
 -- A trigger is not an RPC. Explicit authorization precedes every privileged read.
 create or replace function private.guard_observation() returns trigger language plpgsql security definer set search_path='' set lock_timeout='10s' as $$
@@ -72,6 +76,7 @@ begin
  if tg_op<>'INSERT' then raise check_violation using message='Observations are immutable.'; end if;
  actor:=private.lock_fx_actor(new.household_id);
  select * into a from finance.accounts where household_id=new.household_id and id=new.account_id for update;
+ if not private.fx_actor_live(new.household_id,actor) then raise insufficient_privilege; end if;
  if not found or a.balance_policy<>'OBSERVED' or a.status<>'ACTIVE' then raise check_violation using message='Account cannot receive observations.'; end if;
  if not exists(select 1 from finance.account_sources where household_id=new.household_id and account_id=new.account_id and id=new.source_id) then raise check_violation; end if;
  if new.fx is not null then

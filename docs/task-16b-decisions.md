@@ -192,8 +192,10 @@ including validation on new observation FX, private audited idempotent insertion
 and direct INSERT revocation with observation compatibility. No wider source
 authority change proved necessary. New standalone metadata is server-derived;
 inline observation recording metadata follows the retained existing contract.
-The actor lock also checks session expiry and user ban against wall-clock time
-after waiting, rather than relying solely on the transaction's starting time.
+The actor lock checks session expiry and user ban against wall-clock time after
+waiting. The observation trigger and internal insertion helper repeat the live
+actor check after account-lock waits, immediately before accepting evidence,
+rather than relying solely on the transaction's starting time.
 The existing synthetic backup validator additionally recognizes this exact
 reviewed 16th migration while retaining prior 15-migration compatibility; no
 arbitrary future schema or environment adoption is enabled.

@@ -8,11 +8,11 @@ export async function manualFxApiCases() {
   const f=await manualFxFixture();let checks=0;
   const eq=(actual,expected,label)=>{assert.deepEqual(actual,expected,label);checks++;};
   const write=c=>f.rpc(f.a,'record_manual_fx',c);
-  async function hold(query) {
+  async function hold(query,seconds=2) {
     const child=spawn('docker',['exec','-i','supabase_db_couple-finance','psql','-X','-U','postgres','-d','postgres','-v','ON_ERROR_STOP=1','-At'],{windowsHide:true,stdio:['pipe','pipe','pipe']});
     const done=new Promise((resolve,reject)=>{child.on('error',reject);child.on('close',code=>code===0?resolve():reject(new Error('Synthetic lock holder failed')));});
     const ready=new Promise((resolve,reject)=>{child.stdout.on('data',chunk=>{if(chunk.toString().includes('fx_lock_ready'))resolve();});child.on('close',code=>{if(code!==0)reject(new Error('Synthetic lock holder failed'));});});
-    child.stdin.end(`begin; ${query}; select 'fx_lock_ready'; select pg_sleep(2); commit;`);
+    child.stdin.end(`begin; ${query}; select 'fx_lock_ready'; select pg_sleep(${seconds}); commit;`);
     await ready;return {done};
   }
   try {
@@ -55,6 +55,10 @@ export async function manualFxApiCases() {
     eq((await f.rpc(f.a,'reporting_snapshot')).snapshot.rates,[],'revoked evidence hidden');
     localSql(`update finance.household_members set status='ACTIVE' where household_id='${uuid(f.households[0])}' and user_id='${uuid(f.users[0].id)}';`);
     const {data:{session}}=await f.a.auth.getSession();const claims=JSON.parse(Buffer.from(session.access_token.split('.')[1],'base64url').toString());
+    localSql(`update auth.sessions set not_after=clock_timestamp()+interval '3 seconds' where id='${uuid(claims.session_id)}';`);
+    const accountWait=await hold(`select 1 from finance.accounts where household_id='${uuid(f.households[0])}' and id='${uuid(f.source.account.id)}' for update`,4);
+    eq((await write(f.command({effectiveDate:'2026-10-18'}))).error?.code,'NOT_AUTHORIZED','session expiry during account wait cannot authorize evidence');await accountWait.done;
+    localSql(`update auth.sessions set not_after=null where id='${uuid(claims.session_id)}';`);
     const expiry=await hold(`select 1 from finance.households where id='${uuid(f.households[0])}' for update; update auth.sessions set not_after=clock_timestamp()+interval '1 second' where id='${uuid(claims.session_id)}'`);
     eq((await write(f.command({effectiveDate:'2026-10-17'}))).error.code,'NOT_AUTHORIZED','session expiry during lock wait cannot authorize evidence');await expiry.done;
     localSql(`update auth.sessions set not_after=now()-interval '1 second' where id='${uuid(claims.session_id)}';`);

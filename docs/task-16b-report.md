@@ -110,9 +110,9 @@ under the user's narrowed continuation scope.
   invocation executed all 455 cases). No assertions, timeouts or config changed.
 - ESLint on the reproduction script: PASS, exit 0, no warnings.
 - `git diff --check`: PASS, exit 0; new files also checked with no-index diff.
-- Targeted real PostgreSQL suite: 45 assertions passed, including revoked direct
+- Initial targeted real PostgreSQL suite: 45 assertions passed, including revoked direct
   insertion, helper grants, inline compatibility and atomic rejection.
-- Targeted authenticated API suite: 43 assertions passed, including concurrent
+- Initial targeted authenticated API suite: 43 assertions passed, including concurrent
   same-pair creation, concurrent member revocation and expiry during lock wait.
 - Targeted authenticated browser journeys: 4 passed across desktop/mobile, with
   320/375/390px layout and axe checks, before/after/ambiguity screenshots,
@@ -144,6 +144,19 @@ timeout, retry or CI setting was weakened. The existing 1,001-observation API
 fixture now supplies its actual synthetic live session to the strengthened
 trigger; its data and assertions are unchanged. Shared cleanup deletes the new
 private fixture receipts/audit before their retained evidence/member FKs.
+
+Final security review additionally tests expiry while waiting for an account
+lock, after household/Auth locks have already been acquired. Live actor checks
+now repeat after that wait in both the observation trigger and FX insertion
+helper, immediately before accepting evidence. This adds one PostgreSQL grant
+assertion and one real concurrent API regression; final totals are in the
+external verification/CI manifest.
+The new account-wait regression failed against the prior helper (the expired
+request was accepted), then passed against the hardened helper. Targeted final
+results: 46 PostgreSQL assertions and 44 authenticated API assertions passed.
+Both before/after regression logs are retained in the review package. The
+intermediate verification run was superseded by this security fix; only the
+subsequent full unchanged gate is labelled final.
 
 The owned lab is `cf15a-30c5af89a4c9-source`, freshly created with nonce-labelled
 database/storage volumes and empty initial Auth/household state, at free ports
