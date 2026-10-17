@@ -17,12 +17,12 @@ Implement one bounded task per conversation. Each task must leave a working stat
 | 11 — reviewed and merged (PR #10) | Monthly budgets | budgets/budgeting |
 | 12 — reviewed and merged (PR #11) | Recurring candidates and confirmed obligations | recurring/obligations |
 | 13 — reviewed and merged (PR #12; master CI fix PR #13) | Cash-flow forecast and conservative safe-to-spend | forecasting/cashflow |
-| 14 — implementation for review | Financial data quality and actionable evidence | data-quality/core/read-only snapshot |
-| 15a — approved next scope, not implemented | Private pilot foundation, backup and tested recovery, secure operation | operations/security |
-| 15b — approved direction, not implemented | Practical secure daily mobile usability | mobile UX/auth |
-| 16a — approved direction, not implemented | Broad financial account coverage and easier data intake | accounts/intake/source coverage |
-| 16b — conditional, not implemented | Dynamic FX evidence when actual pilot needs justify it | historical FX integration |
-| 17 — approved direction, not implemented | Minimal financial Goals Engine | goals |
+| 14 — reviewed and merged (PR #14) | Financial data quality and actionable evidence | data-quality/core/read-only snapshot |
+| 15a — reviewed and merged (PR #15) | Private pilot foundation, backup and tested recovery, secure operation | operations/security |
+| 15b — reviewed and merged (PR #16) | Practical secure daily mobile usability | mobile UX/auth |
+| 16a — reviewed and merged (PR #17) | Broad financial account coverage and easier data intake | accounts/intake/source coverage |
+| 16b — reviewed and merged (PR #18) | Narrow manual missing historical FX evidence intake | historical FX intake |
+| 17 — implementation for independent review | Planning-only personal/shared financial goals, versioned declarations and deterministic monthly plan | goals |
 | 18 — approved direction, not implemented | Deterministic insights and actionable recommendations | insights |
 | 19a–19b — approved direction, not implemented | First AI Financial Coach and contextual conversation | controlled AI |
 | 20a–20b — approved direction, not implemented | Authorized background evaluation and proactive notifications | background/notifications |

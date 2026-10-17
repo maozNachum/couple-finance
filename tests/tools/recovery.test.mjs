@@ -34,6 +34,12 @@ test('reviewed FX migration preserves retained backup compatibility without acce
   for (const migrations of [[...bundle().migrations, 'unknown'], [...current.migrations, 'future']])
     assert.throws(() => validateBackup({ ...current, migrations }), /INCOMPLETE/);
 });
+
+test('reviewed goals schema is accepted only with its exact FX predecessor', () => {
+  const b=bundle();b.migrations.push('20261016144109','20261017211305');assert.equal(validateBackup(b),b);
+  for(const migrations of [[...b.migrations,'future'],[...bundle().migrations,'unknown','20261017211305']])
+    assert.throws(()=>validateBackup({...b,migrations}),/INCOMPLETE/);
+});
 test('unclean PostgreSQL shutdown rejected', () => { const b = bundle(); b.cleanShutdown = false; assert.throws(() => validateBackup(b), /MANIFEST/); });
 test('retained or hosted name never qualifies', () => { const s = state(); s.project = 'couple-finance-task14'; assert.throws(() => validateIdentity(s, volume, 'db'), /PROJECT/); });
 test('labels alone cannot substitute for creation identity', () => { const v = structuredClone(volume); v.CreatedAt = 'different'; assert.throws(() => validateIdentity(state(), v, 'db'), /IDENTITY/); });

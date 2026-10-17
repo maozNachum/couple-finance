@@ -1,6 +1,6 @@
 # Couple Finance
 
-Private household finance application for Maoz and Shachar. Tasks 1–13 are merged: Hebrew RTL interface, canonical financial contracts, invitation-only Auth and household isolation, dated accounts/ledger, categorization, explicit CSV ingestion, reconciliation, reporting, budgets, confirmed obligations and conservative cash-flow forecasting. Task 14 adds read-only financial data quality for independent review. Live banking, AI, production deployment and pilot readiness remain future work; see the [current roadmap](docs/roadmap.md).
+Private household finance application for Maoz and Shachar. Tasks 1–16b are merged: Hebrew RTL interface, canonical financial contracts, invitation-only Auth and household isolation, dated accounts/ledger, categorization, explicit CSV ingestion, reconciliation, reporting, budgets, confirmed obligations and conservative cash-flow forecasting. Financial data quality, synthetic recovery, mobile usability, account intake and historical FX intake are included. Task 17 adds planning-only financial goals for independent review. Live banking, AI, production deployment and pilot readiness remain future work; see the [current roadmap](docs/roadmap.md).
 
 ## Run locally
 
@@ -11,7 +11,7 @@ npm ci
 npm run dev
 ```
 
-Open http://127.0.0.1:5173. Routes include `/`, `/about`, `/sign-in`, `/auth/confirm`, `/household`, `/accounts`, `/transactions`, `/dashboard`, `/budgets`, `/obligations`, `/forecast`, `/imports`, `/reconciliation`, `/categories` and `/data-quality`, plus an unknown-route fallback. Authenticated routes need the local stack/configuration. The site contains no mock balances. Public configuration guidance is in `.env.example`.
+Open http://127.0.0.1:5173. Routes include `/`, `/about`, `/sign-in`, `/auth/confirm`, `/household`, `/accounts`, `/transactions`, `/dashboard`, `/budgets`, `/obligations`, `/forecast`, `/imports`, `/reconciliation`, `/categories`, `/data-quality` and `/goals`, plus an unknown-route fallback. Authenticated routes need the local stack/configuration. The site contains no mock balances. Public configuration guidance is in `.env.example`.
 
 ## Verify
 
@@ -35,6 +35,7 @@ Individual commands:
 | `npm run build` | Guarded production browser build plus isolated test-only core browser bundle |
 | `npm run test:e2e` | Built-site desktop/mobile, keyboard, accessibility, route and overflow tests |
 | `npm run test:accounts` | Real account API isolation, precision, concurrent commands and complete snapshot tests |
+| `npm run test:goals` | Synthetic goal API authorization, exact retries, concurrent edits, revocation races and financial non-mutation |
 | `npm run test:transactions` | Real transaction API retries, conflicting corrections, exact allocations, history and authorization |
 | `npm run preview` | Preview the most recent production build |
 

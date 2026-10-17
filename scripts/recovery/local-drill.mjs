@@ -84,7 +84,7 @@ function prepareCopy(state) {
 }
 export function prepare(lab, role, port) {
   checkHost();
-  requireThat(['source', 'target'].includes(role) && [15621, 15721, 15821, 15921].includes(port), 'INVALID_LAB_ARGUMENTS');
+  requireThat(['source', 'target'].includes(role) && [15621, 15721, 15821, 15921, 16121].includes(port), 'INVALID_LAB_ARGUMENTS');
   lab = outsideRepository(lab);
   requireThat(!existsSync(stateFile(lab)), 'LAB_ALREADY_EXISTS');
   claim(lab,'prepare');

@@ -1,5 +1,8 @@
 # Architecture and placement
 
+Task 17 adds `/goals` and two reviewed ES-only goal aliases. A small independent pure engine consumes only validated planning history and an explicit date. A bounded invoker snapshot reads households/members/goals without the financial graph. One narrow atomic command writes goal heads, immutable revisions, scoped receipts and minimal audit only. See [goal decisions](task-17-decisions.md).
+
+
 Task 16b adds historical FX evidence diagnosis/intake within the existing
 data-quality feature, reusing its authorized snapshot and canonical calculators.
 The existing FX contract alias gains a strict manual declaration/response; no
@@ -22,7 +25,7 @@ Task 9 adds exact `contracts/reconciliation` and `domain/reconciliation` portabl
 
 Task 8 extends ingestion preview with an explicit import review/commit Edge endpoint. CSV parsing stays in the reviewed provider; authorization, candidate search, atomic financial writes and receipts stay in curated SQL commands. The internal Task 6 writer now accepts authorized internal FILE_IMPORT creation, while manual commands cannot fabricate imports. Stored revision/ledger readers accept retained account FILE_IMPORT relationships; manual corrections and category commands preserve original provenance. See [Task 8 decisions](task-8-decisions.md).
 
-Status: Tasks 1–13 merged; Task 14 implemented for review. Retain the modular monolith, one React/Vite client and one Supabase backend. See the canonical roadmap for unimplemented future scope.
+Status: Tasks 1–16b merged; Task 17 implemented for review. Retain the modular monolith, one React/Vite client and one Supabase backend. See the canonical roadmap for unimplemented future scope.
 
 ## Dependency ownership
 

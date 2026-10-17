@@ -1,3 +1,4 @@
+import { GoalsPage } from '@/pages/goals/GoalsPage';
 import { CategoriesPage } from '@/pages/categories/CategoriesPage';
 import { DashboardPage } from '@/pages/dashboard/DashboardPage';
 import { ImportsPage } from '@/pages/imports/ImportsPage';
@@ -28,6 +29,7 @@ export function AppRoutes() {
         <Route path="household" element={<HouseholdPage />} />
         <Route path="accounts" element={<AccountsPage />} />
         <Route path="dashboard" element={<DashboardPage />} />
+        <Route path="goals" element={<GoalsPage />} />
         <Route path="budgets" element={<BudgetsPage />} />
         <Route path="obligations" element={<ObligationsPage />} />
         <Route path="forecast" element={<ForecastPage />} />

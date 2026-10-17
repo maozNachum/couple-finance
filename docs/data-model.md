@@ -1,5 +1,8 @@
 # Financial model
 
+Task 17 goals have immutable household/identity/currency/ownership, positive target, explicit nonnegative user-declared progress, optional monthly contribution/deadline and ACTIVE/terminal ARCHIVED revisions. Durable actors and member attribution survive access revocation. These are planning declarations: no ledger, asset, liquidity reservation, verified funding or exclusivity is established. Calendar opportunities and upward exact monthly rounding are defined in [goal decisions](task-17-decisions.md).
+
+
 Task 13 computes read-only eligible liquidity from explicitly selected ACTIVE BANK/CASH/SAVINGS positions, once per stable account identity and whole ownership. Starting closing date is bounded by explicit evidenceAsOf; future-dated starts cannot become known cash. Confirmed monthly expenses remain planning evidence. Actual associations, current revisions and reconciliation determine what is already reflected, represented once or unresolved. Foreign starting valuation and unknown future cash timing cannot authorize a spending amount. Safe-to-spend compares every daily minimum (including baseline) with an explicit nonnegative buffer, retains genuine modeled shortfall, and is absent for incomplete inputs. No stored balance/planning/financial history changes; [decisions](task-13-decisions.md).
 
 Task 12 adds stable household/account/currency/ownership obligation heads, immutable effective-date revisions, original relational transaction/revision/allocation evidence, reviewed rejection decisions and payment-link histories. Expected events are pure derived planning data, never financial rows. Version windows preserve earlier dates; one current actual claim per transaction prevents contradictory matching. Schedule edits affecting linked occurrences require explicit unlink first. Corrected/voided actual evidence stales its retained association. Only monthly negative EXPENSE obligations are supported; principal, transfers, investment and refunds retain distinct meanings. See [Task 12 policy](task-12-decisions.md).
@@ -50,7 +53,7 @@ Observations retain exact signed Money, date, coverage, server recording timesta
 
 Identity: profiles, households, household_members, currencies. Accounts: institutions, financial_connections, accounts, account_sources, balance_observations, fx_rates. Activity: transactions, transaction_allocations, transaction_sources, transfer_links, categories, merchants, categorization_rules. Planning: budgets, budget_allocations, recurring_series, obligations, obligation_matches. Ingestion: ingestion_runs, ingestion_items, import_profiles. Private operations: connection_credentials, audit_logs, command_receipts. Derived insights: financial_insights.
 
-Later features add investment_account_details, instruments, portfolio_snapshots, holding_snapshots, goals, goal_allocations, goal_contributions, report_snapshots and notifications only when used. Do not implement these early.
+Later features add investment_account_details, instruments, portfolio_snapshots, holding_snapshots, goal_allocations, goal_contributions, report_snapshots and notifications only when used. Do not implement these early.
 
 Financial records are archived, superseded or reversed with traceability. Audited corrections and immutable observations/reports avoid full event sourcing. Derived summaries are calculated; retained monthly reports freeze inputs, FX references and calculation version for reproducibility.
 

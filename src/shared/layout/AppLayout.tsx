@@ -8,6 +8,7 @@ const daily = [
 ] as const;
 const secondary = [
   ['/obligations', 'התחייבויות', '↻'], ['/forecast', 'תחזית תזרים', '▥'],
+  ['/goals', 'יעדים', '◉'],
   ['/data-quality', 'איכות המידע', 'ⓘ'], ['/categories', 'קטגוריות וסיווג', '◎'],
   ['/imports', 'הכנת CSV', '↑'], ['/reconciliation', 'התאמת תנועות', '⇄'],
   ['/household', 'הבית המשותף', '⌂'], ['/sign-in', 'כניסה', '↗'],
