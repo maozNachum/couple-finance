@@ -2,6 +2,8 @@ import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
 import { reconciliationFixture } from '../tests/integration/reconciliation-fixture.mjs';
 import { localAdmin,localSql,sqlText,uuid } from './local-supabase.mjs';
+import { manualFxApiCases } from '../tests/integration/manual-fx-api.mjs';
+await manualFxApiCases();
 const f=await reconciliationFixture();
 let checks=0;
 const eq=(a,b,label)=>{assert.deepEqual(a,b,label);checks++;};

@@ -10,7 +10,7 @@ import { decimal, decimalStringSchema, add, subtract, multiply, divide, compare,
 import { moneySchema } from '@finance/contracts/money';
 import { currencyCodeSchema, initialReportingCurrency } from '@finance/contracts/currency';
 import { addMoney, subtractMoney, compareMoney, scaleMoney, divideMoney, roundMoney, displayMoney } from '@finance/domain/money/money';
-import { fxRateSchema } from '@finance/contracts/fx';
+import { fxRateSchema, manualFxCommandSchema } from '@finance/contracts/fx';
 import { convertMoney } from '@finance/domain/money/fx';
 import { financialDateSchema, financialMonthSchema, utcTimestampSchema, monthlyRecurrenceSchema, householdTimeZone } from '@finance/contracts/financial-date';
 import { compareFinancialDates, monthOf, firstDayOfMonth, lastDayOfMonth, moveFinancialMonth, monthBoundaries, recurrenceDate } from '@finance/domain/dates/financial-date';
@@ -41,6 +41,11 @@ function rejects(run: () => unknown): void {
 const id = '00000000-0000-4000-8000-000000000001';
 const secondId = '00000000-0000-4000-8000-000000000002';
 const thirdId = '00000000-0000-4000-8000-000000000003';
+test('manual FX command is exact and cannot declare server provenance', () => {
+  const c={householdId:id,sourceAccountId:secondId,id:thirdId,idempotencyKey:'manual_fx_command_01',base:'USD',quote:'ILS',rate:'3.700000000001',effectiveDate:'2026-10-10',acknowledge:true};
+  equal(manualFxCommandSchema.parse(c).rate,'3.700000000001');
+  for(const extra of [{rate:3.7},{rate:'0'},{rate:'-1'},{rate:'1e2'},{rate:'3.1234567890123'},{base:'ILS'},{effectiveDate:'2026-02-30'},{recordedAt:'2026-10-10T00:00:00Z'},{origin:{kind:'LIVE_SYNC',sourceId:id}},{acknowledge:false}]) rejects(()=>manualFxCommandSchema.parse({...c,...extra}));
+});
 const date = financialDateSchema.parse('2024-02-29');
 const month = financialMonthSchema.parse('2024-02');
 const d = decimal;

@@ -9,6 +9,7 @@ import { safeErrorSchema } from '@finance/contracts/safe-error';
 import { loadDataQuality } from '../api/data-quality';
 import { currentDay, coverageText, moduleText, typeText, reasonText, actions } from '../model/presentation';
 import { accountHref } from '@/shared/navigation/account-context';
+import { HistoricalFxEvidence } from './HistoricalFxEvidence';
 
 export function DataQualityPanel() {
   const navigate=useNavigate(),generation=useRef(0);
@@ -76,8 +77,8 @@ export function DataQualityPanel() {
           <p>משפיע על: {[...new Set(f.impacts.map(i=>moduleText[i.module]))].join(' · ')}. מצב הראיות: {coverageText[f.state]}.</p>
           {f.observationAgeDays!==null&&<p>גיל המדידה ביחס לתאריך הבדיקה: {f.observationAgeDays} ימים. אין דרישה שכל סוג חשבון יתעדכן מדי יום.</p>}
           <ul>{[...new Set(f.evidence.map(e=>e.measuredOn||e.recordedAt||e.currency?`תאריך פיננסי: ${e.measuredOn??'לא צוין'} · נרשם: ${e.recordedAt??'לא צוין'} · מטבע מקורי: ${e.currency??'לא צוין'}`:''))].filter(Boolean).slice(0,3).map(line=><li key={line}>{line}</li>)}</ul>
-          {f.type==='HISTORICAL_FX'&&<p>כיוון ותאריך ההמרה: <bdi>{f.subject.id}</bdi></p>}
-          {f.limitation&&<p>{f.limitation}</p>}
+          {f.type==='HISTORICAL_FX'&&<HistoricalFxEvidence key={`${snapshot.capturedAt}/${f.id}`} finding={f} snapshot={snapshot} refresh={()=>{generation.current++;setSnapshot(null);setReload(n=>n+1);}} unauthorized={()=>{generation.current++;setSnapshot(null);navigate('/sign-in',{replace:true});}} />}
+          {f.limitation&&f.type!=='HISTORICAL_FX'&&<p>{f.limitation}</p>}
           {f.action&&<Link to={f.subject.kind==='ACCOUNT' && (f.action==='ACCOUNTS'||f.action==='TRANSACTIONS') && accounts.some(a=>a.account.id===f.subject.id) ? accountHref(f.action==='ACCOUNTS'?'/accounts':'/transactions',{id:f.subject.id,householdId}) : actions[f.action].path}>{actions[f.action].label}</Link>}
           <details><summary>כל {f.evidence.length} מקורות הראיות והתוצאות המושפעות</summary>
             <p>זהות הנושא: <bdi>{f.subject.id}</bdi>. יש לבחור את הבית והנושא במסך הבדיקה; הגישה נבדקת שם מחדש.</p>

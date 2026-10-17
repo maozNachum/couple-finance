@@ -27,6 +27,13 @@ test('truncated bundle is rejected', () => assert.throws(() => unseal(seal(bundl
 test('missing Storage archive is a failed backup', () => { const b = bundle(); delete b.archives.storage; assert.throws(() => validateBackup(b), /INCOMPLETE/); });
 test('independent archive digest rejects changed payload', () => { const b = bundle(); b.archives.db.data = Buffer.from('changed').toString('base64'); assert.throws(() => validateBackup(b), /INTEGRITY/); });
 test('object inventory is mandatory', () => { const b = bundle(); b.objects = []; assert.throws(() => validateBackup(b), /INCOMPLETE/); });
+
+test('reviewed FX migration preserves retained backup compatibility without accepting unknown schemas', () => {
+  const old = bundle(); assert.equal(validateBackup(old), old);
+  const current = bundle(); current.migrations.push('20261016144109'); assert.equal(validateBackup(current), current);
+  for (const migrations of [[...bundle().migrations, 'unknown'], [...current.migrations, 'future']])
+    assert.throws(() => validateBackup({ ...current, migrations }), /INCOMPLETE/);
+});
 test('unclean PostgreSQL shutdown rejected', () => { const b = bundle(); b.cleanShutdown = false; assert.throws(() => validateBackup(b), /MANIFEST/); });
 test('retained or hosted name never qualifies', () => { const s = state(); s.project = 'couple-finance-task14'; assert.throws(() => validateIdentity(s, volume, 'db'), /PROJECT/); });
 test('labels alone cannot substitute for creation identity', () => { const v = structuredClone(volume); v.CreatedAt = 'different'; assert.throws(() => validateIdentity(state(), v, 'db'), /IDENTITY/); });

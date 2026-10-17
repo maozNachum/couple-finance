@@ -121,7 +121,7 @@ export function financialDataQuality(raw:DataQualitySnapshot,rawRequest:DataQual
     const key=`${original}/${target}/${date}`;
     const rates=r.rates.filter(e=>e.householdId===h && e.rate.base===original && e.rate.quote===target && e.rate.effectiveDate===date)
       .map(e=>({kind:'FX' as const,id:e.rate.id,version:null,sourceId:e.rate.origin.sourceId,measuredOn:e.rate.effectiveDate,recordedAt:e.rate.recordedAt,currency:e.rate.base}));
-    add('HISTORICAL_FX',key,{kind:'FX_PAIR',id:key},reason,i,[...evidence,...rates],null,'אין כרגע מסך להזנת שער היסטורי עצמאי או לרכישת שערים.');
+    add('HISTORICAL_FX',key,{kind:'FX_PAIR',id:key},reason,i,[...evidence,...rates],null,'אפשר לבדוק ראיות שמורות ולהצהיר על שער ידני חסר. אין תיקון שער שמור או הכרעה בין שערים מתחרים.');
   };
   const relationship=(id:string,reason:string,i:QualityImpact) => {
     const decisions=r.decisions.filter(d=>d.householdId===h && d.id===id).sort((a,b)=>b.version-a.version),d=decisions[0];

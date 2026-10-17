@@ -1,0 +1,14 @@
+import { beforeEach, expect, it, vi } from 'vitest';
+import { recordManualFx } from './manual-fx';
+const mocks=vi.hoisted(()=>({getUser:vi.fn(),rpc:vi.fn()}));
+vi.mock('@/shared/infrastructure/supabase-client',()=>({browserClient:()=>({auth:{getUser:mocks.getUser},rpc:mocks.rpc})}));
+const id='00000000-0000-4000-8000-000000000001';
+const command={householdId:id,sourceAccountId:id,id,idempotencyKey:'manual_fx_command_01',base:'USD',quote:'ILS',rate:'3.7',effectiveDate:'2026-10-10',acknowledge:true};
+const evidence={householdId:id,rate:{id,base:'USD',quote:'ILS',rate:'3.7',effectiveDate:'2026-10-10',recordedAt:'2026-10-16T00:00:00Z',origin:{kind:'MANUAL',sourceId:id}}};
+beforeEach(()=>{vi.clearAllMocks();mocks.getUser.mockResolvedValue({data:{user:{id}},error:null});mocks.rpc.mockResolvedValue({data:{ok:true,evidence},error:null});});
+it('submits the strict declaration and accepts its canonical receipt',async()=>{expect(await recordManualFx(command)).toEqual(evidence);expect(mocks.rpc).toHaveBeenCalledExactlyOnceWith('record_manual_fx',{payload:command});});
+it('never submits without a live user',async()=>{mocks.getUser.mockResolvedValue({data:{user:null},error:null});await expect(recordManualFx(command)).rejects.toMatchObject({code:'NOT_AUTHORIZED'});expect(mocks.rpc).not.toHaveBeenCalled();});
+it('never accepts browser-supplied provenance',async()=>{await expect(recordManualFx({...command,origin:evidence.rate.origin})).rejects.toMatchObject({code:'INVALID_INPUT'});expect(mocks.rpc).not.toHaveBeenCalled();});
+it('rejects mismatched or externally attributed receipts',async()=>{mocks.rpc.mockResolvedValue({data:{ok:true,evidence:{...evidence,rate:{...evidence.rate,origin:{...evidence.rate.origin,kind:'LIVE_SYNC'}}}},error:null});await expect(recordManualFx(command)).rejects.toMatchObject({code:'INTERNAL_ERROR'});});
+it('retains the fixed authorization vocabulary',async()=>{mocks.rpc.mockResolvedValue({data:{ok:false,error:{code:'NOT_AUTHORIZED',kind:'AUTHORIZATION',safeMessage:'This action is not permitted.',retryable:false}},error:null});await expect(recordManualFx(command)).rejects.toMatchObject({code:'NOT_AUTHORIZED'});});
+it('does not expose uncertain transport diagnostics or retry automatically',async()=>{mocks.rpc.mockRejectedValue(new Error('secret sentinel'));await expect(recordManualFx(command)).rejects.toMatchObject({code:'INTERNAL_ERROR'});expect(mocks.rpc).toHaveBeenCalledTimes(1);});

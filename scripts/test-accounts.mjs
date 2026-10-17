@@ -59,9 +59,12 @@ try {
   const foreign = await a.schema('finance').from('accounts').select('*');
   equal(foreign.error !== null,true);
   // A scalar snapshot must not inherit PostgREST's default 1,000-row cap.
-  localSql(`insert into finance.balance_observations(id,household_id,account_id,source_id,observation_date,amount,currency,coverage,note)
+  const bulkToken=(await a.auth.getSession()).data.session.access_token;
+  const bulkClaims=JSON.parse(Buffer.from(bulkToken.split('.')[1],'base64url').toString());
+  localSql(`begin; select set_config('request.jwt.claims','${JSON.stringify({sub:bulkClaims.sub,session_id:bulkClaims.session_id,role:'authenticated'})}',true);
+    insert into finance.balance_observations(id,household_id,account_id,source_id,observation_date,amount,currency,coverage,note)
     select gen_random_uuid(),'${uuid(account.householdId)}','${uuid(account.id)}','${uuid(record.manualSourceId)}',date '2020-01-01'+n,1,'USD','COMPLETE','Synthetic pagination regression'
-    from generate_series(0,1000) n;`);
+    from generate_series(0,1000) n; commit;`);
   const snapshot = await a.rpc('account_snapshot');
   equal(snapshot.error,null);
   equal(snapshot.data.observations.length,1006);
