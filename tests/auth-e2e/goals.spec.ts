@@ -23,6 +23,7 @@ test('shared goal creation, explicit progress edit, history and archive on mobil
  test.setTimeout(90000);const f=await goalFixture();
  try{
   await login(page,f);await expect(page.getByText('עדיין אין יעדים פעילים.',{exact:false})).toBeVisible();
+  await page.getByText('איך מחושב החיסכון החודשי?',{exact:true}).click();await expect(page.getByText('החישוב מתייחס לסוף חודש היעד, גם אם נבחר בו יום מוקדם יותר.',{exact:false})).toBeVisible();await page.getByText('איך מחושב החיסכון החודשי?',{exact:true}).click();
   await page.setViewportSize({width:320,height:850});await page.getByRole('button',{name:'הוספת יעד'}).click();await fill(page);await page.getByLabel('הפקדה חודשית מתוכננת (רשות)').fill('1500');
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth)).toBe(true);expect((await new AxeBuilder({page}).analyze()).violations).toEqual([]);
   await page.screenshot({path:info.outputPath('goals-form-320-rtl.png'),fullPage:true});

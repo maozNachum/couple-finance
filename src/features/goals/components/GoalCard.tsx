@@ -17,7 +17,7 @@ export function GoalCard({goal,snapshot,day,disabled,onEdit,onArchive}:{goal:Goa
       {result.deadline==='OVERDUE'&&<p>תאריך היעד עבר. התוכנית אינה מעידה על הפקדות שבוצעו.</p>}
       {result.requiredMonthly?<p>חיסכון חודשי נדרש: <bdi>{displayExactMoney(result.requiredMonthly)}</bdi> · {result.months} חודשי הפקדה</p>:result.immediatelyRequired?<p>נדרש כעת, ללא חודשי הפקדה עתידיים: <bdi>{displayExactMoney(result.immediatelyRequired)}</bdi></p>:<p>אין תאריך יעד — חיסכון חודשי נדרש אינו מחושב.</p>}
       <p>הפקדה חודשית משוערת שהוגדרה: <bdi>{goal.monthly?displayExactMoney(goal.monthly):'לא הוגדרה'}</bdi></p>
-      {result.outcome&&result.plannedDifference?<p>סכום לפי התוכנית בתאריך היעד: <bdi>{displayExactMoney(result.outcome)}</bdi> · פער מול היעד (חיובי: עודף, שלילי: חוסר): <bdi>{displayExactMoney(result.plannedDifference)}</bdi></p>:<p>אין אומדן תוצאה ללא תאריך יעד עתידי או נוכחי ותוכנית הפקדה מפורשת.</p>}
+      {result.outcome&&result.plannedDifference?<p>סכום לפי התוכנית בסוף חודש היעד: <bdi>{displayExactMoney(result.outcome)}</bdi> · פער מול היעד (חיובי: עודף, שלילי: חוסר): <bdi>{displayExactMoney(result.plannedDifference)}</bdi></p>:<p>אין אומדן תוצאה ללא תאריך יעד עתידי או נוכחי ותוכנית הפקדה מפורשת.</p>}
     </>:<p role="alert">לא ניתן לחשב תוכנית בטווח הסכומים הנתמך. הסכומים המקוריים נשמרים.</p>}
     <p>מימון בנקאי לא אומת. ההצהרה אינה מבטיחה כסף זמין או בלעדיות מול יעדים אחרים.</p>
     {goal.status==='ACTIVE'&&<div className="accounts-toolbar"><button disabled={disabled} onClick={onEdit}>עריכת יעד</button><button disabled={disabled} onClick={onArchive}>העברה לארכיון</button></div>}

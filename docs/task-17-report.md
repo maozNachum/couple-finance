@@ -77,7 +77,9 @@ links, without weakening the old test. Another intermediate run was cancelled
 before final verification. Final arithmetic review replaced an exact-integer
 ceiling helper with the existing decimal wrapper. Mobile visual review separated
 touching action buttons and shortened the initial explanation with expandable
-detail. No existing assertion, timeout, retry or CI policy was weakened.
+detail. Final UI wording explicitly labels the projected outcome at target
+month-end, including when the selected deadline is earlier in that month.
+No existing assertion, timeout, retry or CI policy was weakened.
 
 ## Final verification evidence
 
