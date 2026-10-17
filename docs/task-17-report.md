@@ -83,18 +83,36 @@ No existing assertion, timeout, retry or CI policy was weakened.
 
 ## Final verification evidence
 
-Observed completed foundation checks: 647 Vitest tests, 485 permission-free Deno
-cases plus 15 CSV cases, 688 PostgreSQL assertions (including 33 Goals assertions),
-14 public browser cases, clean database lint and security advisors. The complete
-authenticated browser gate contains 82 cases, including ten Goals cases. Final
-API counts and the authenticated/full-chain outcomes are recorded in the exact-
-head external manifest and logs, rather than inferred from this gate inventory.
+The complete local `npm run verify` finished with exit code 0. Actual results:
+
+| Gate | Passed |
+| --- | --- |
+| Vitest | 647 tests, 16 files |
+| Permission-free Deno | 485 core/context/permission cases plus 15 CSV cases |
+| Public browser | 14 cases, including four runtime timezones |
+| PostgreSQL | 688 assertions, 16 files, including 33 Goals assertions |
+| Database lint/security advisors | Clean; no issues found |
+| Auth / accounts / transactions API | 33 / 33 / 118 assertions |
+| Categorization / import / import commit | 70 / 91 / 195 assertions |
+| Reconciliation / historical FX / reporting | 86 / 44 / 31 assertions |
+| Budgets / obligations | 50 / 93 assertions |
+| Authenticated browser | 82 cases, including ten Goals cases |
+| Forecast / data quality / Goals API | 15 / 22 / 50 assertions |
+
+After the final month-end wording clarification, typecheck, lint, build and all
+ten Goals browser journeys passed again. Keyboard/mobile coverage explicitly
+submits with Enter and checks the form itself at 320px. Browser fixtures derive
+a twelve-month deadline from the disclosed Jerusalem basis without changing
+Auth's clock; pure acceptance dates remain fixed. Screenshots are captured from
+the document top to avoid off-viewport fixed-position capture artifacts.
+Run-specific source-copy manifests distinguish the local full-chain source
+from the final focused source. Standard CI runs the entire gate again on the
+final committed head; [PR #19 checks](https://github.com/maozNachum/couple-finance/pull/19/checks)
+and the external evidence bind its actual outcome to that exact full SHA.
+
 The initial focused Goals API run passed 48 assertions; final validation adds
-two raw Unicode-whitespace cases. Initial focused browser results were 8/10,
-followed by 2/2 corrected personal-attribution cases. Final keyboard/mobile form
-coverage explicitly submits with Enter and checks the form itself at 320px.
-Browser fixtures derive a twelve-month deadline from the disclosed Jerusalem
-basis without changing Auth's clock; pure acceptance dates remain fixed.
+two raw Unicode-whitespace cases and passes 50. Initial focused browser results
+were 8/10, followed by 2/2 corrected personal-attribution cases, then all 10/10.
 
 The external exact-head review manifest records the final local full-chain
 result, exact test counts, source-copy hashes, final commit/tree, GitHub CI run

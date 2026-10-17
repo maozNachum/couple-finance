@@ -26,11 +26,12 @@ test('shared goal creation, explicit progress edit, history and archive on mobil
   await page.getByText('איך מחושב החיסכון החודשי?',{exact:true}).click();await expect(page.getByText('החישוב מתייחס לסוף חודש היעד, גם אם נבחר בו יום מוקדם יותר.',{exact:false})).toBeVisible();await page.getByText('איך מחושב החיסכון החודשי?',{exact:true}).click();
   await page.setViewportSize({width:320,height:850});await page.getByRole('button',{name:'הוספת יעד'}).click();await fill(page);await page.getByLabel('הפקדה חודשית מתוכננת (רשות)').fill('1500');
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth)).toBe(true);expect((await new AxeBuilder({page}).analyze()).violations).toEqual([]);
+  await page.evaluate(()=>window.scrollTo(0,0));
   await page.screenshot({path:info.outputPath('goals-form-320-rtl.png'),fullPage:true});
   await page.getByLabel('הפקדה חודשית מתוכננת (רשות)').press('Enter');
   await expect(card(page)).toContainText('24000.00 ILS');await expect(card(page)).toContainText('חיסכון חודשי נדרש: 2000.00 ILS');await expect(card(page)).toContainText('20%');await expect(card(page)).toContainText('מימון בנקאי לא אומת');
   for(const width of [320,375,390,1280]){
-   await page.setViewportSize({width,height:850});expect(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth)).toBe(true);
+   await page.setViewportSize({width,height:850});await page.evaluate(()=>window.scrollTo(0,0));expect(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth)).toBe(true);
    expect((await new AxeBuilder({page}).analyze()).violations).toEqual([]);
    await page.screenshot({path:info.outputPath(`goals-${width}-rtl.png`),fullPage:true});
   }

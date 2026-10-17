@@ -14,7 +14,7 @@ revisions with durable actor and server UTC timestamps. No COMPLETED state.
 Names: trimmed 1–100 characters. Positive target and nonnegative declared
 amount/optional monthly plan use canonical Money (16 integer/8 fractional
 digits, ILS/USD/EUR/JPY/KWD). Dates use valid Gregorian 0001–9999 date-only.
-No deadline is supported. Initial declared amount defaults to explicitly shown
+Goals without a deadline are supported. Initial declared amount defaults to explicitly shown
 zero. Member creation requires current ACTIVE same-household eligibility;
 historical attribution survives revocation. Ownership grants no privacy.
 
